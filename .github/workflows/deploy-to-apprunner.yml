@@ -54,9 +54,6 @@ on:
         required: true
         type: string
     secrets:
-      envPAT:
-        required: true
-  workflow_dispatch: # Allow manual invocation of the workflow
 
 env:
   NODE_ENV: ${{ inputs.NODE_ENV }}
