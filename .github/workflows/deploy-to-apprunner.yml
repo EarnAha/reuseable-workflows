@@ -3,6 +3,8 @@ name: Deploy to App Runner
 on:
   workflow_call:
     inputs:
+      EXTRA_ENVS:
+        type: string
       NODE_ENV:
         required: true
         type: string
@@ -126,6 +128,29 @@ jobs:
           secret-ids: ${{ env.AWS_SECRET_RETRIEVE_IDS }}
           parse-json-secrets: true
 
+      - name: AWS Secrets to JSON
+        env:
+          AWS_SECRETS: ${{ toJson(env.AWS_SECRETS) }}
+        run: |
+          echo "$AWS_SECRETS"
+          echo "$AWS_SECRETS" > AWS_SECRETS.json
+
+      - name: JSON to variables
+        uses: rgarcia-phi/json-to-variables@v1.1.0
+        with:
+          filename: 'AWS_SECRETS.json'
+          prefix: ''
+          masked: false
+
+      - name: Mapping envs
+      - uses: iamsauravsharma/create-dotenv@v1.2.2
+        with:
+          #env-prefix: 'ENV_KEY_' # Optional (default: '')
+          file-name: '.env' # Optional (default : '.env')
+          #directory: 'tests/' # Optional (default: '.')
+        env:
+          AWS_SECRETS: AWS_SECRETS
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -194,6 +219,12 @@ jobs:
       - name: Deploy to App Runner Image
         id: deploy-apprunner
         uses: awslabs/amazon-app-runner-deploy@main
+        #env:
+          #SENTRY_DSN: ${{ env.API_AUTH_SECRET_SENTRY_DSN }}
+          #DB_CONN_STR: ${{ env.API_AUTH_SECRET_DB_CONN_STR }}
+          #AUTH0_DOMAIN: ${{ env.API_AUTH_SECRET_SENTRY_DSN }}
+          #AUTH0_CLIENT_ID: ${{ env.API_AUTH_SECRET_AUTH0_CLIENT_ID }}
+          #AUTH0_CLIENT_SECRET: ${{ env.API_AUTH_SECRET_AUTH0_CLIENT_SECRET }}
         with:
           service: ${{ env.AWS_APP_RUNNER_SERVICE_NAME }}
           image: ${{ steps.build-image.outputs.image }}
