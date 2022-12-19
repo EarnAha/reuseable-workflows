@@ -49,6 +49,10 @@ on:
         required: false
         type: string
         default: '/info'
+      AWS_APP_RUNNER_SHA_EXPECTED_VALUE_PATH:
+        required: false
+        type: string
+        default: 'data.commit'
       SENTRY_ORG_NAME:
         required: true
         type: string
@@ -75,6 +79,7 @@ env:
   AWS_APP_RUNNER_COPY_ENVS: ${{ inputs.AWS_APP_RUNNER_COPY_ENVS }}
   AWS_APP_RUNNER_COPY_ENVS_REPLACE_STRING: ${{ inputs.AWS_APP_RUNNER_COPY_ENVS_REPLACE_STRING }}
   AWS_APP_RUNNER_SHA_CHECK_PATH: ${{ inputs.AWS_APP_RUNNER_SHA_CHECK_PATH }}
+  AWS_APP_RUNNER_SHA_EXPECTED_VALUE_PATH: ${{ inputs.AWS_APP_RUNNER_SHA_EXPECTED_VALUE_PATH }}
   SENTRY_ORG_NAME: ${{ inputs.SENTRY_ORG_NAME }}
   SENTRY_PROJECT_NAME: ${{ secrets.SENTRY_PROJECT_NAME }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -136,7 +141,7 @@ jobs:
         uses: aws-actions/aws-secretsmanager-get-secrets@v1
         with:
           secret-ids: ${{ env.AWS_SECRET_RETRIEVE_IDS }}
-          parse-json-secrets: false
+          parse-json-secrets: true
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -240,8 +245,9 @@ jobs:
         uses: mydea/action-wait-for-api@v1.0.0
         with:
           url: https://${{ steps.deploy-apprunner.outputs.service-url }}${{ env.AWS_APP_RUNNER_SHA_CHECK_PATH }}
-          expected-response-field: "data.commit"
+          expected-response-field: ${{ env.AWS_APP_RUNNER_SHA_EXPECTED_VALUE_PATH }}
           expected-response-field-value: ${{ env.SHORT_SHA }}
+          timeout: 60
 
 
       # =========================================================
