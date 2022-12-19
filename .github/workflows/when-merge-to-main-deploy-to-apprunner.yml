@@ -1,0 +1,280 @@
+name: Deploy to App Runner
+on:
+  workflow_call:
+    inputs:
+      NODE_ENV:
+        required: true
+        type: string
+      APP_PORT:
+        required: true
+        type: number
+      AWS_REGION:
+        required: true
+        type: string
+      AWS_ASSUME_ROLE_ARN:
+        required: true
+        type: string
+      AWS_SECRET_RETRIEVE_IDS:
+        required: true
+        type: string
+      AWS_APP_RUNNER_SERVICE_NAME:
+        required: true
+        type: string
+      AWS_APP_RUNNER_CPU:
+        required: false
+        type: number
+        default: 1
+      AWS_APP_RUNNER_MEMORY:
+        required: false
+        type: number
+        default: 2
+      AWS_APP_RUNNER_WAIT_SECONDS:
+        required: false
+        type: number
+        default: 600
+      AWS_APP_RUNNER_SERVICE_NAME:
+        required: true
+        type: string
+      AWS_APP_RUNNER_ASSUME_ROLE_ARN:
+        required: true
+        type: string  
+      AWS_APP_RUNNER_COPY_ENVS:
+        required: true
+        type: string
+      SENTRY_ORG_NAME:
+        required: true
+        type: string
+      SENTRY_PROJECT_NAME:
+        required: true
+        type: string
+      SENTRY_AUTH_TOKEN:
+        required: true
+        type: string
+      SENTRY_SOURCEMAP_PATH:
+        required: true
+        type: string
+    secrets:
+      envPAT:
+        required: true
+  workflow_dispatch: # Allow manual invocation of the workflow
+
+env:
+  NODE_ENV: ${{ inputs.NODE_ENV }}
+  APP_PORT: ${{ inputs.APP_PORT }}
+  AWS_REGION: ${{ inputs.AWS_REGION }}
+  AWS_ASSUME_ROLE_ARN: ${{ inputs.AWS_ASSUME_ROLE_ARN }}
+  AWS_SECRET_RETRIEVE_IDS: ${{ inputs.AWS_SECRET_RETRIEVE_IDS }}
+  AWS_APP_RUNNER_SERVICE_NAME: ${{ inputs.AWS_APP_RUNNER_SERVICE_NAME }}
+  AWS_APP_RUNNER_CPU: ${{ inputs.AWS_APP_RUNNER_CPU }}
+  AWS_APP_RUNNER_MEMORY: ${{ inputs.AWS_APP_RUNNER_MEMORY }}
+  AWS_APP_RUNNER_WAIT_SECONDS: ${{ inputs.AWS_APP_RUNNER_WAIT_SECONDS }}
+  AWS_APP_RUNNER_ASSUME_ROLE_ARN: ${{ inputs.AWS_APP_RUNNER_ASSUME_ROLE_ARN }}
+  AWS_APP_RUNNER_COPY_ENVS: ${{ inputs.AWS_APP_RUNNER_COPY_ENVS }}
+  SENTRY_ORG_NAME: ${{ inputs.SENTRY_ORG_NAME }}
+  SENTRY_PROJECT_NAME: ${{ inputs.SENTRY_PROJECT_NAME }}
+  SENTRY_AUTH_TOKEN: ${{ inputs.SENTRY_AUTH_TOKEN }}
+  SENTRY_SOURCEMAP_PATH: ${{ inputs.SENTRY_SOURCEMAP_PATH }}
+
+jobs:
+  create-deployment:
+    runs-on: self-hosted
+    # Map a step output to a job output
+    outputs:
+      deploymentId: ${{ fromJson(steps.create_deployment.outputs.data).id }}
+    steps:
+    - name: Create Github deployment
+      id: create_deployment
+      uses: octokit/request-action@v2.x
+      with:
+        route: POST /repos/:repository/deployments
+        repository: ${{ github.repository }}
+        ref: ${{ github.head_ref || github.ref }}
+        environment: ${{ env.NODE_ENV }}
+        auto_merge: false
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+  deploy:
+    runs-on: self-hosted
+    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
+    permissions:
+      id-token: write
+      contents: read
+      deployments: write
+    needs: create-deployment
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+          ref: main
+
+      - name: Read package info
+        id: package
+        uses: codex-team/action-nodejs-package-info@v1
+
+      # =========================================================
+      #
+      # Get information
+      #
+      # =========================================================
+
+      - name: Configure AWS credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          # Use GitHub OIDC provider
+          role-to-assume: ${{ env.AWS_ASSUME_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get secrets from AWS SecretsManager
+        uses: aws-actions/aws-secretsmanager-get-secrets@v1
+        with:
+          secret-ids: ${{ env.AWS_SECRET_RETRIEVE_IDS }}
+          parse-json-secrets: true
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # =========================================================
+      #
+      # Show information
+      #
+      # =========================================================
+
+      - name: Dump Current Env
+        env:
+          ENV_VARS: ${{ toJson(env) }}
+        run: echo "$ENV_VARS"
+
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Dump job context
+        env:
+          JOB_CONTEXT: ${{ toJson(job) }}
+        run: echo "$JOB_CONTEXT"
+
+      - name: Dump steps context
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+        run: echo "$STEPS_CONTEXT"
+
+
+      # =========================================================
+      #
+      # Start deployment
+      #
+      # =========================================================
+
+      - name: set deployment status to in progress
+        id: start_deployment
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/:repository/deployments/:deployment/statuses
+          repository: ${{ github.repository }}
+          deployment: ${{ needs.create-deployment.outputs.deploymentId }}
+          environment: ${{ env.NODE_ENV }}
+          environment_url: https://${{ steps.deploy-apprunner.outputs.service-url }}
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          state: in_progress
+          mediaType: '{"previews": ["flash", "ant-man"]}'
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: api-auth-742084164729-ap-northeast-1
+          IMAGE_TAG: ${{ steps.package.outputs.version }}-${{ github.sha }}
+        run: |
+          echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker build --build-arg NODE_ENV=${{ env.NODE_ENV }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . 
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker images $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Deploy to App Runner Image
+        id: deploy-apprunner
+        uses: awslabs/amazon-app-runner-deploy@main
+        env:
+          #SENTRY_DSN: ${{ env.API_AUTH_SECRET_SENTRY_DSN }}
+          #DB_CONN_STR: ${{ env.API_AUTH_SECRET_DB_CONN_STR }}
+          #AUTH0_DOMAIN: ${{ env.API_AUTH_SECRET_SENTRY_DSN }}
+          #AUTH0_CLIENT_ID: ${{ env.API_AUTH_SECRET_AUTH0_CLIENT_ID }}
+          #AUTH0_CLIENT_SECRET: ${{ env.API_AUTH_SECRET_AUTH0_CLIENT_SECRET }}
+        with:
+          service: ${{ env.AWS_APP_RUNNER_SERVICE_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+          access-role-arn: ${{ env.AWS_APP_RUNNER_ASSUME_ROLE_ARN }}
+          region: ${{ env.AWS_REGION }}
+          cpu: ${{ env.AWS_APP_RUNNER_CPU }}
+          memory: ${{ env.AWS_APP_RUNNER_MEMORY }}
+          wait-for-service-stability-seconds: ${{ env.AWS_APP_RUNNER_WAIT_SECONDS }}
+          port: ${{ env.APP_PORT }}
+          copy-env-vars: ${{ env.AWS_APP_RUNNER_COPY_ENVS }}
+
+      - name: Show final App Runner URL
+        run: echo "App runner URL ${{ steps.deploy-apprunner.outputs.service-url }}"
+
+
+      # =========================================================
+      #
+      # Update Sentry Release
+      #
+      # =========================================================
+
+      - name: Create Sentry Release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ env.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ env.SENTRY_ORG_NAME }}
+          SENTRY_PROJECT: ${{ env.SENTRY_PROJECT_NAME }}
+          # SENTRY_URL: https://sentry.io/
+        with:
+          version: ${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }}
+          sourcemaps: ${{ env.SENTRY_SOURCEMAP_PATH }}
+          environment: ${{ env.NODE_ENV }}
+          ignore_empty: true
+
+
+      # =========================================================
+      #
+      # Update Github deployment
+      #
+      # =========================================================
+
+      - name: set deployment status to success
+        id: successful_deployment
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/:repository/deployments/:deployment/statuses
+          repository: ${{ github.repository }}
+          deployment: ${{ needs.create-deployment.outputs.deploymentId }}
+          environment: ${{ env.NODE_ENV }}
+          environment_url: https://${{ steps.deploy-apprunner.outputs.service-url }}
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          mediaType: '{"previews": ["ant-man"]}'
+          state: success
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: set deployment status to failure
+        id: failed_deployment
+        uses: octokit/request-action@v2.x
+        if: failure()
+        with:
+          route: POST /repos/:repository/deployments/:deployment/statuses
+          repository: ${{ github.repository }}
+          deployment: ${{ needs.create-deployment.outputs.deploymentId }}
+          environment: ${{ env.NODE_ENV }}
+          environment_url: https://${{ steps.deploy-apprunner.outputs.service-url }}
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          mediaType: '{"previews": ["ant-man"]}'
+          state: failure
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
