@@ -142,15 +142,6 @@ jobs:
           prefix: ''
           masked: false
 
-      - name: Mapping envs
-      - uses: iamsauravsharma/create-dotenv@v1.2.2
-        with:
-          #env-prefix: 'ENV_KEY_' # Optional (default: '')
-          file-name: '.env' # Optional (default : '.env')
-          #directory: 'tests/' # Optional (default: '.')
-        env:
-          AWS_SECRETS: AWS_SECRETS
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
