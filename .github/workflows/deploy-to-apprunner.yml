@@ -44,7 +44,7 @@ on:
       AWS_APP_RUNNER_COPY_ENVS_REPLACE_STRING:
         required: false
         type: string
-        default: AWS_SECRETS
+        default: 'AWS_SECRETS_'
       AWS_APP_RUNNER_SHA_CHECK_PATH:
         required: false
         type: string
