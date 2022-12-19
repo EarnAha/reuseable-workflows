@@ -126,7 +126,7 @@ jobs:
         uses: aws-actions/aws-secretsmanager-get-secrets@v1
         with:
           secret-ids: ${{ env.AWS_SECRET_RETRIEVE_IDS }}
-          parse-json-secrets: true
+          parse-json-secrets: false
 
       - name: AWS Secrets to JSON
         env:
