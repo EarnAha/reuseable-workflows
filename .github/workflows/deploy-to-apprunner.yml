@@ -247,7 +247,7 @@ jobs:
           url: https://${{ steps.deploy-apprunner.outputs.service-url }}${{ env.AWS_APP_RUNNER_SHA_CHECK_PATH }}
           expected-response-field: ${{ env.AWS_APP_RUNNER_SHA_EXPECTED_VALUE_PATH }}
           expected-response-field-value: ${{ env.SHORT_SHA }}
-          timeout: 60
+          timeout: 30
 
 
       # =========================================================
