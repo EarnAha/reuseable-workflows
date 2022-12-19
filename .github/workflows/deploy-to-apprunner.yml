@@ -130,7 +130,7 @@ jobs:
 
       - name: AWS Secrets to JSON
         env:
-          AWS_SECRETS_JSON: ${{ fromJson(env.AWS_SECRETS) }}
+          AWS_SECRETS_JSON: ${{ toJson(env.AWS_SECRETS) }}
         run: |
           echo "$AWS_SECRETS"
           echo "$AWS_SECRETS_JSON"
