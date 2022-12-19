@@ -33,12 +33,9 @@ on:
         required: false
         type: number
         default: 600
-      AWS_APP_RUNNER_SERVICE_NAME:
-        required: true
-        type: string
       AWS_APP_RUNNER_ASSUME_ROLE_ARN:
         required: true
-        type: string  
+        type: string
       AWS_APP_RUNNER_COPY_ENVS:
         required: true
         type: string
