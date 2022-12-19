@@ -42,13 +42,14 @@ on:
       SENTRY_ORG_NAME:
         required: true
         type: string
+      SENTRY_SOURCEMAP_PATH:
+        required: true
+        type: string
+    secrets:
       SENTRY_PROJECT_NAME:
         required: true
         type: string
       SENTRY_AUTH_TOKEN:
-        required: true
-        type: string
-      SENTRY_SOURCEMAP_PATH:
         required: true
         type: string
 
@@ -65,8 +66,8 @@ env:
   AWS_APP_RUNNER_ASSUME_ROLE_ARN: ${{ inputs.AWS_APP_RUNNER_ASSUME_ROLE_ARN }}
   AWS_APP_RUNNER_COPY_ENVS: ${{ inputs.AWS_APP_RUNNER_COPY_ENVS }}
   SENTRY_ORG_NAME: ${{ inputs.SENTRY_ORG_NAME }}
-  SENTRY_PROJECT_NAME: ${{ inputs.SENTRY_PROJECT_NAME }}
-  SENTRY_AUTH_TOKEN: ${{ inputs.SENTRY_AUTH_TOKEN }}
+  SENTRY_PROJECT_NAME: ${{ secrets.SENTRY_PROJECT_NAME }}
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   SENTRY_SOURCEMAP_PATH: ${{ inputs.SENTRY_SOURCEMAP_PATH }}
 
 jobs:
