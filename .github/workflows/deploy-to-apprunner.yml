@@ -51,9 +51,6 @@ on:
       SENTRY_SOURCEMAP_PATH:
         required: true
         type: string
-    secrets:
-      token:
-        required: true
 
 env:
   NODE_ENV: ${{ inputs.NODE_ENV }}
