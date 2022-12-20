@@ -28,7 +28,7 @@ on:
       AWS_EC2_APP_WAIT_SECONDS:
         required: false
         type: number
-        default: 600
+        default: 300
       SENTRY_ORG_NAME:
         required: true
         type: string
@@ -208,7 +208,7 @@ jobs:
           expected-response-field: ${{ inputs.AWS_EC2_SHA_EXPECTED_VALUE_PATH }}
           expected-response-field-value: ${{ inputs.SHORT_SHA }}
           timeout: ${{ inputs.AWS_EC2_APP_WAIT_SECONDS }}
-          interval: 60
+          interval: 10
 
       # =========================================================
       #

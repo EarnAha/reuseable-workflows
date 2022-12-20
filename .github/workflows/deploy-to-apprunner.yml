@@ -264,8 +264,8 @@ jobs:
           url: https://${{ steps.deploy-apprunner.outputs.service-url }}${{ env.AWS_APP_RUNNER_SHA_CHECK_PATH }}
           expected-response-field: ${{ env.AWS_APP_RUNNER_SHA_EXPECTED_VALUE_PATH }}
           expected-response-field-value: ${{ env.SHORT_SHA }}
-          timeout: 600
-          interval: 60
+          timeout: 300
+          interval: 10
 
       # =========================================================
       #
@@ -293,7 +293,7 @@ jobs:
       #
       # =========================================================
 
-      - name: set deployment status to success
+      - name: Set deployment status to success
         id: successful_deployment
         uses: octokit/request-action@v2.x
         with:
@@ -308,7 +308,7 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: set deployment status to failure
+      - name: Set deployment status to failure
         id: failed_deployment
         uses: octokit/request-action@v2.x
         if: failure()
