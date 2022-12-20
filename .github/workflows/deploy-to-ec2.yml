@@ -41,9 +41,6 @@ on:
       AWS_EC2_APP_RESTART_COMMAND:
         required: true
         type: string
-      AWS_EC2_HOST_NAME:
-        required: true
-        type: string
       WAIT_FOR_ACTION_NAME_SUCCEED:
         required: false
         type: string
@@ -53,6 +50,9 @@ on:
         type: number
         default: 60
     secrets:
+      AWS_EC2_HOST_NAME:
+        required: true
+        type: string
       SENTRY_PROJECT_NAME:
         required: true
       SENTRY_AUTH_TOKEN:
