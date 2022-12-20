@@ -52,7 +52,6 @@ on:
     secrets:
       AWS_EC2_HOST_NAME:
         required: true
-        type: string
       SENTRY_PROJECT_NAME:
         required: true
       SENTRY_AUTH_TOKEN:
