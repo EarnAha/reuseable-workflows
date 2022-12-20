@@ -28,7 +28,7 @@ on:
       AWS_EC2_APP_WAIT_SECONDS:
         required: false
         type: number
-        default: 300
+        default: 600
       SENTRY_ORG_NAME:
         required: true
         type: string
@@ -44,17 +44,34 @@ on:
       AWS_EC2_HOST_NAME:
         required: true
         type: string
+      WAIT_FOR_ACTION_NAME_SUCCEED:
+        required: false
+        type: string
+        default: run-test-cases
+      WAIT_INTERVAL:
+        required: false
+        type: number
+        default: 60
     secrets:
       SENTRY_PROJECT_NAME:
         required: true
       SENTRY_AUTH_TOKEN:
         required: true
 
-env:
-
 jobs:
+  wait-for-tests-succeed:
+    runs-on: self-hosted
+    steps:
+      - uses: lewagon/wait-on-check-action@v1.0.0
+        with:
+          ref: ${{ github.ref }}
+          check-name: ${{ inputs.WAIT_FOR_ACTION_NAME_SUCCEED }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: ${{ inputs.WAIT_INTERVAL }}
+
   create-deployment:
     runs-on: self-hosted
+    needs: wait-for-tests-succeed
     # Map a step output to  a job output
     outputs:
       deploymentId: ${{ fromJson(steps.create_deployment.outputs.data).id }}
@@ -73,12 +90,12 @@ jobs:
 
   deploy:
     runs-on: self-hosted
+    needs: create-deployment
     # These permissions are needed to interact with GitHub's OIDC Token endpoint.
     permissions:
       id-token: write
       contents: read
       deployments: write
-    needs: create-deployment
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -191,6 +208,7 @@ jobs:
           expected-response-field: ${{ inputs.AWS_EC2_SHA_EXPECTED_VALUE_PATH }}
           expected-response-field-value: ${{ inputs.SHORT_SHA }}
           timeout: ${{ inputs.AWS_EC2_APP_WAIT_SECONDS }}
+          interval: 60
 
       # =========================================================
       #
