@@ -1,4 +1,4 @@
-name: Deploy to App Runner
+name: Deploy to EC2
 
 on:
   workflow_call:
@@ -6,9 +6,9 @@ on:
       NODE_ENV:
         required: true
         type: string
-      APP_PORT:
+      BRANCH_NAME:
         required: true
-        type: number
+        type: string
       AWS_REGION:
         required: true
         type: string
@@ -18,43 +18,30 @@ on:
       AWS_SECRET_RETRIEVE_IDS:
         required: true
         type: string
-      AWS_APP_RUNNER_SERVICE_NAME:
+      AWS_EC2_SHA_CHECK_URL:
         required: true
         type: string
-      AWS_APP_RUNNER_CPU:
-        required: false
-        type: number
-        default: 1
-      AWS_APP_RUNNER_MEMORY:
-        required: false
-        type: number
-        default: 2
-      AWS_APP_RUNNER_WAIT_SECONDS:
-        required: false
-        type: number
-        default: 600
-      AWS_APP_RUNNER_ASSUME_ROLE_ARN:
-        required: true
-        type: string
-      AWS_APP_RUNNER_COPY_ENVS:
-        required: true
-        type: string
-      AWS_APP_RUNNER_COPY_ENVS_REPLACE_STRING:
-        required: false
-        type: string
-        default: 'AWS_SECRETS_'
-      AWS_APP_RUNNER_SHA_CHECK_PATH:
-        required: false
-        type: string
-        default: '/info'
-      AWS_APP_RUNNER_SHA_EXPECTED_VALUE_PATH:
+      AWS_EC2_SHA_EXPECTED_VALUE_PATH:
         required: false
         type: string
         default: 'data.commit'
+      AWS_EC2_APP_WAIT_SECONDS:
+        required: false
+        type: number
+        default: 300
       SENTRY_ORG_NAME:
         required: true
         type: string
       SENTRY_SOURCEMAP_PATH:
+        required: true
+        type: string
+      AWS_EC2_APP_FOLDER_NAME:
+        required: true
+        type: string
+      AWS_EC2_APP_RESTART_COMMAND:
+        required: true
+        type: string
+      AWS_EC2_HOST_NAME:
         required: true
         type: string
     secrets:
@@ -64,29 +51,11 @@ on:
         required: true
 
 env:
-  NODE_ENV: ${{ inputs.NODE_ENV }}
-  APP_PORT: ${{ inputs.APP_PORT }}
-  AWS_REGION: ${{ inputs.AWS_REGION }}
-  AWS_ASSUME_ROLE_ARN: ${{ inputs.AWS_ASSUME_ROLE_ARN }}
-  AWS_SECRET_RETRIEVE_IDS: ${{ inputs.AWS_SECRET_RETRIEVE_IDS }}
-  AWS_APP_RUNNER_SERVICE_NAME: ${{ inputs.AWS_APP_RUNNER_SERVICE_NAME }}
-  AWS_APP_RUNNER_CPU: ${{ inputs.AWS_APP_RUNNER_CPU }}
-  AWS_APP_RUNNER_MEMORY: ${{ inputs.AWS_APP_RUNNER_MEMORY }}
-  AWS_APP_RUNNER_WAIT_SECONDS: ${{ inputs.AWS_APP_RUNNER_WAIT_SECONDS }}
-  AWS_APP_RUNNER_ASSUME_ROLE_ARN: ${{ inputs.AWS_APP_RUNNER_ASSUME_ROLE_ARN }}
-  AWS_APP_RUNNER_COPY_ENVS: ${{ inputs.AWS_APP_RUNNER_COPY_ENVS }}
-  AWS_APP_RUNNER_COPY_ENVS_REPLACE_STRING: ${{ inputs.AWS_APP_RUNNER_COPY_ENVS_REPLACE_STRING }}
-  AWS_APP_RUNNER_SHA_CHECK_PATH: ${{ inputs.AWS_APP_RUNNER_SHA_CHECK_PATH }}
-  AWS_APP_RUNNER_SHA_EXPECTED_VALUE_PATH: ${{ inputs.AWS_APP_RUNNER_SHA_EXPECTED_VALUE_PATH }}
-  SENTRY_ORG_NAME: ${{ inputs.SENTRY_ORG_NAME }}
-  SENTRY_PROJECT_NAME: ${{ secrets.SENTRY_PROJECT_NAME }}
-  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  SENTRY_SOURCEMAP_PATH: ${{ inputs.SENTRY_SOURCEMAP_PATH }}
 
 jobs:
   create-deployment:
     runs-on: self-hosted
-    # Map a step output to a job output
+    # Map a step output to  a job output
     outputs:
       deploymentId: ${{ fromJson(steps.create_deployment.outputs.data).id }}
     steps:
@@ -97,7 +66,7 @@ jobs:
         route: POST /repos/:repository/deployments
         repository: ${{ github.repository }}
         ref: ${{ github.head_ref || github.ref }}
-        environment: ${{ env.NODE_ENV }}
+        environment: ${{ inputs.NODE_ENV }}
         auto_merge: false
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
@@ -132,18 +101,14 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           # Use GitHub OIDC provider
-          role-to-assume: ${{ env.AWS_ASSUME_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ inputs.AWS_ASSUME_ROLE_ARN }}
+          aws-region: ${{ inputs.AWS_REGION }}
 
       - name: Get secrets from AWS SecretsManager
         uses: aws-actions/aws-secretsmanager-get-secrets@v1
         with:
-          secret-ids: ${{ env.AWS_SECRET_RETRIEVE_IDS }}
+          secret-ids: ${{ inputs.AWS_SECRET_RETRIEVE_IDS }}
           parse-json-secrets: true
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
 
       # =========================================================
       #
@@ -185,7 +150,7 @@ jobs:
           route: POST /repos/:repository/deployments/:deployment/statuses
           repository: ${{ github.repository }}
           deployment: ${{ needs.create-deployment.outputs.deploymentId }}
-          environment: ${{ env.NODE_ENV }}
+          environment: ${{ inputs.NODE_ENV }}
           environment_url: https://${{ steps.deploy-apprunner.outputs.service-url }}
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           state: in_progress
@@ -193,42 +158,22 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: api-auth-742084164729-ap-northeast-1
-          IMAGE_TAG: ${{ steps.package.outputs.version }}-${{ github.sha }}
-        run: |
-          echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          docker build --build-arg NODE_ENV=${{ env.NODE_ENV }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . 
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker images $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-      - name: Deploy to App Runner Image
-        id: deploy-apprunner
-        uses: EarnAha/amazon-app-runner-deploy@main
-        #env:
-          #SENTRY_DSN: ${{ env.API_AUTH_SECRET_SENTRY_DSN }}
-          #DB_CONN_STR: ${{ env.API_AUTH_SECRET_DB_CONN_STR }}
-          #AUTH0_DOMAIN: ${{ env.API_AUTH_SECRET_SENTRY_DSN }}
-          #AUTH0_CLIENT_ID: ${{ env.API_AUTH_SECRET_AUTH0_CLIENT_ID }}
-          #AUTH0_CLIENT_SECRET: ${{ env.API_AUTH_SECRET_AUTH0_CLIENT_SECRET }}
+      - name: Pulling newest code and restart pm2 app
+        uses: fifsky/ssh-action@master
         with:
-          service: ${{ env.AWS_APP_RUNNER_SERVICE_NAME }}
-          image: ${{ steps.build-image.outputs.image }}
-          access-role-arn: ${{ env.AWS_APP_RUNNER_ASSUME_ROLE_ARN }}
-          region: ${{ env.AWS_REGION }}
-          cpu: ${{ env.AWS_APP_RUNNER_CPU }}
-          memory: ${{ env.AWS_APP_RUNNER_MEMORY }}
-          wait-for-service-stability-seconds: ${{ env.AWS_APP_RUNNER_WAIT_SECONDS }}
-          port: ${{ env.APP_PORT }}
-          copy-env-vars: ${{ env.AWS_APP_RUNNER_COPY_ENVS }}
-          replace-string-in-env: ${{ env.AWS_APP_RUNNER_COPY_ENVS_REPLACE_STRING }}
-
-      - name: Show final App Runner URL
-        run: echo "App runner URL ${{ steps.deploy-apprunner.outputs.service-url }}"
+          command: |
+            cd ./${{ inputs.AWS_EC2_APP_FOLDER_NAME }}
+            git fetch
+            git fetch --tags
+            git reset --hard
+            git checkout ${{ inputs.BRANCH_NAME }}
+            npm ci
+            ${{ inputs.AWS_EC2_APP_RESTART_COMMAND }}
+            sleep 10
+            pm2 logs ${{ inputs.AWS_EC2_APP_FOLDER_NAME }} --nostream --lines 100
+          host: ${{ inputs.AWS_EC2_HOST_NAME }}
+          user: ubuntu
+          key: ${{ inputs.EC2_SSH_KEY }}
 
 
       # =========================================================
@@ -242,10 +187,10 @@ jobs:
       - name: Check SHA of latest deployment
         uses: mydea/action-wait-for-api@v1.0.0
         with:
-          url: https://${{ steps.deploy-apprunner.outputs.service-url }}${{ env.AWS_APP_RUNNER_SHA_CHECK_PATH }}
-          expected-response-field: ${{ env.AWS_APP_RUNNER_SHA_EXPECTED_VALUE_PATH }}
-          expected-response-field-value: ${{ env.SHORT_SHA }}
-          timeout: 120
+          url: ${{ inputs.AWS_EC2_SHA_CHECK_URL }}
+          expected-response-field: ${{ inputs.AWS_EC2_SHA_EXPECTED_VALUE_PATH }}
+          expected-response-field-value: ${{ inputs.SHORT_SHA }}
+          timeout: ${{ inputs.AWS_EC2_APP_WAIT_SECONDS }}
 
       # =========================================================
       #
@@ -256,14 +201,14 @@ jobs:
       - name: Create Sentry Release
         uses: getsentry/action-release@v1
         env:
-          SENTRY_AUTH_TOKEN: ${{ env.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ env.SENTRY_ORG_NAME }}
-          SENTRY_PROJECT: ${{ env.SENTRY_PROJECT_NAME }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ inputs.SENTRY_ORG_NAME }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT_NAME }}
           # SENTRY_URL: https://sentry.io/
         with:
           version: ${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }}
-          sourcemaps: ${{ env.SENTRY_SOURCEMAP_PATH }}
-          environment: ${{ env.NODE_ENV }}
+          sourcemaps: ${{ inputs.SENTRY_SOURCEMAP_PATH }}
+          environment: ${{ inputs.NODE_ENV }}
           ignore_empty: true
 
 
@@ -280,7 +225,7 @@ jobs:
           route: POST /repos/:repository/deployments/:deployment/statuses
           repository: ${{ github.repository }}
           deployment: ${{ needs.create-deployment.outputs.deploymentId }}
-          environment: ${{ env.NODE_ENV }}
+          environment: ${{ inputs.NODE_ENV }}
           environment_url: https://${{ steps.deploy-apprunner.outputs.service-url }}
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           mediaType: '{"previews": ["ant-man"]}'
@@ -296,7 +241,7 @@ jobs:
           route: POST /repos/:repository/deployments/:deployment/statuses
           repository: ${{ github.repository }}
           deployment: ${{ needs.create-deployment.outputs.deploymentId }}
-          environment: ${{ env.NODE_ENV }}
+          environment: ${{ inputs.NODE_ENV }}
           environment_url: https://${{ steps.deploy-apprunner.outputs.service-url }}
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           mediaType: '{"previews": ["ant-man"]}'
