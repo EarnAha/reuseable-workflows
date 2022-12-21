@@ -57,14 +57,6 @@ on:
       SENTRY_SOURCEMAP_PATH:
         required: true
         type: string
-      WAIT_FOR_ACTION_NAME_SUCCEED:
-        required: false
-        type: string
-        default: run-test-cases
-      WAIT_INTERVAL:
-        required: false
-        type: number
-        default: 60
     secrets:
       SENTRY_PROJECT_NAME:
         required: true
@@ -92,16 +84,6 @@ env:
   SENTRY_SOURCEMAP_PATH: ${{ inputs.SENTRY_SOURCEMAP_PATH }}
 
 jobs:
-  wait-for-tests-succeed:
-    runs-on: self-hosted
-    steps:
-      - uses: lewagon/wait-on-check-action@v1.0.0
-        with:
-          ref: ${{ github.ref }}
-          check-name: ${{ inputs.WAIT_FOR_ACTION_NAME_SUCCEED }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: ${{ inputs.WAIT_INTERVAL }}
-
   create-deployment:
     runs-on: self-hosted
     needs: wait-for-tests-succeed
