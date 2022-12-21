@@ -52,7 +52,6 @@ on:
 jobs:
   create-deployment:
     runs-on: self-hosted
-    needs: wait-for-tests-succeed
     # Map a step output to  a job output
     outputs:
       deploymentId: ${{ fromJson(steps.create_deployment.outputs.data).id }}
