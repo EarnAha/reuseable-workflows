@@ -1,0 +1,163 @@
+name: Verify Pull Request
+
+on:
+  workflow_call:
+    inputs:
+      act:
+        required: false
+        type: boolean
+        default: false
+      APP_PORT:
+        required: false
+        type: number
+        default: 3333
+      DB_HOST:
+        required: false
+        type: string
+        default: localhost
+      DB_DBNAME:
+        required: false
+        type: string
+        default: database_test
+      DB_USER:
+        required: false
+        type: string
+        default: user
+      DB_PASSWORD:
+        required: false
+        type: string
+        default: password
+      JEST_NODE_VERSION:
+        required: false
+        type: string
+        default: '16'
+      JEST_RUN_UT:
+        required: false
+        type: boolean
+        default: true
+      JEST_RUN_FT:
+        required: false
+        type: boolean
+        default: false
+      JEST_RUN_IT:
+        required: false
+        type: boolean
+        default: false
+      JEST_COVERAGE_MULTIPLE_FILES:
+        required: false
+        type: string
+      JEST_BADGE_LOGO_NAME:
+        required: false
+        type: string
+        default: javascript
+      JEST_BADGE_UPDATE_GIST_FILE_NAME:
+        required: true
+        type: string
+      JEST_BADGE_UPDATE_GIST_ID:
+        required: true
+        type: string
+      PASSED_ENV_VARS:
+        required: false
+        type: string
+    secrets:
+      JEST_COVERAGE_COMMENT:
+        required: true
+      SLACK_WEBHOOK_URL:
+        required: true
+
+env:
+  GITHUB_ACTION: true
+  DOTENV_FLOW_SILENT: true
+  AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+  AUTH0_API_DOMAIN: ${{ secrets.AUTH0_API_DOMAIN }}
+  AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+  AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+
+jobs:
+  find-unresolved-conflict:
+    runs-on: self-hosted
+    name: Find unresolved merge conflicts
+    steps:
+      # Checkout the source code so there are some files to look at.
+      - uses: actions/checkout@v3
+      # Run the actual merge conflict finder
+      - name: Merge Conflict finder
+        uses: olivernybroe/action-conflict-finder@v4.0
+
+  notify-new-conflict:
+    runs-on: self-hosted
+    name: Notify user if has new merge conflicts
+    steps:
+      - uses: actions/checkout@v3
+        if: ${{ !inputs.act }}
+      - uses: nokamoto/merge-conflict-action@v0.0.2
+        if: ${{ !inputs.act }}
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: Merge Conflict found! @here
+
+  run-test-cases:
+    needs: [find-unresolved-conflict, notify-new-conflict]
+    runs-on: self-hosted
+    services:
+      postgres:
+        image: postgres:14
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+        env:
+          POSTGRES_HOST: ${{ inputs.DB_HOST }}
+          POSTGRES_DB: ${{ inputs.DB_DBNAME }}
+          POSTGRES_USER: ${{ inputs.DB_USER }}
+          POSTGRES_PASSWORD: ${{ inputs.DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set passed ENV vars
+        uses: jwulf/add-env-vars-action@1.0
+        with:
+          map: ${{ inputs.PASSED_ENV_VARS }}
+
+      - name: Dump Current Env
+        env:
+          ENV_VARS: ${{ toJson(env) }}
+        run: echo "$ENV_VARS"
+
+      # Install local deps if this action is being run locally
+      - name: ACT - Install local dependencies
+        if: ${{ inputs.ACT }}
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list';
+          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -;
+          sudo apt -y update;
+          sudo apt -y install postgresql-14;
+          sudo service postgresql start;
+          echo POSTGRES_HOST: $DB_HOST
+          echo POSTGRES_DB: $DB_DBNAME
+          echo POSTGRES_USER: $DB_USER
+          echo POSTGRES_PASSWORD: $DB_PASSWORD
+          sudo -u postgres psql -U postgres -c "CREATE DATABASE $DB_DBNAME;"
+          sudo -u postgres psql -U postgres -c "CREATE USER \"$DB_USER\" WITH SUPERUSER PASSWORD '$DB_PASSWORD'"
+
+      - name: Running test cases
+        uses: ./.github/actions/run-test-cases
+        with:
+          NODE_VERSION: ${{ inputs.JEST_NODE_VERSION }}
+          RUN_UT: ${{ inputs.JEST_RUN_UT }}
+          RUN_FT: ${{ inputs.JEST_RUN_FT }}
+          RUN_IT: ${{ inputs.JEST_RUN_IT }}
+          JEST_COVERAGE_MULTIPLE_FILES: ${{ inputs.JEST_COVERAGE_MULTIPLE_FILES }}
+          JEST_BADGE_UPDATE_GIST_TOKEN: ${{ secrets.JEST_COVERAGE_COMMENT }}
+          JEST_BADGE_UPDATE_GIST_ID: ${{ inputs.JEST_BADGE_UPDATE_GIST_ID }}
+          JEST_BADGE_UPDATE_GIST_FILE_NAME: ${{ inputs.JEST_BADGE_UPDATE_GIST_FILE_NAME }}
+          JEST_BADGE_LOGO_NAME: ${{ inputs.JEST_BADGE_LOGO_NAME }}
+
+      - uses: 8398a7/action-slack@v3
+        if: ${{ always() && !inputs.ACT }} # Pick up events even if the job fails or is canceled.
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took,pullRequest # selectable (default: repo,message)
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required

@@ -1,0 +1,107 @@
+name: "Run test cases"
+
+description: "Run all necessary test cases."
+
+inputs:
+  NODE_VERSION:
+    description: 'Target node version'
+    default: '16'
+    required: false
+  RUN_UT:
+    description: 'Should the test runs ut'
+    default: 'true'
+    required: false
+  RUN_FT:
+    description: 'Should the test runs ft'
+    default: 'false'
+    required: false
+  RUN_IT:
+    description: 'Should the test runs it'
+    default: 'false'
+    required: false
+  JEST_COVERAGE_SUMMARY_PATH:
+    description: 'The path of jest coverage summary file'
+    default: './coverage/coverage-summary.json'
+    required: false
+  JEST_COVERAGE_MULTIPLE_FILES:
+    description: 'The path of jest coverage summary file'
+    required: false
+  JEST_COVERAGE_PATH:
+    description: 'The path of jest coverage file'
+    default: './coverage/coverage.txt'
+    required: false
+  JEST_BADGE_UPDATE_GIST_TOKEN:
+    description: 'Github token for update gist'
+    required: true
+  JEST_BADGE_UPDATE_GIST_ID:
+    description: 'Target gist id'
+    required: true
+  JEST_BADGE_UPDATE_GIST_FILE_NAME:
+    description: 'Target gist filename'
+    required: true
+  JEST_BADGE_LOGO_NAME:
+    description: 'Badge language logo name'
+    required: false
+    default: javascript
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Set up node
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.NODE_VERSION }}
+
+    - name: use cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          node_modules
+          */*/node_modules
+        key: ${{ inputs.NODE_VERSION }}-${{ hashFiles('package-lock.json') }}
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Run unit test cases
+      if: ${{ inputs.RUN_UT == 'true' }}
+      run: npm run test:ut
+      shell: bash
+
+    - name: Run functional test cases
+      if: ${{ inputs.RUN_FT == 'true' }}
+      run: npm run test:ft
+      shell: bash
+
+    - name: Run integration test cases
+      if: ${{ inputs.RUN_IT == 'true' }}
+      run: npm run test:it
+      shell: bash
+
+    - name: Generate Jest Coverage Comment
+      if: (github.event_name == 'pull_request' || github.event_name == 'push')
+      id: coverageComment
+      uses: MishaKav/jest-coverage-comment@main
+      with:
+        coverage-summary-path: ${{ inputs.JEST_COVERAGE_SUMMARY_PATH }}
+        multiple-files: ${{ inputs.JEST_COVERAGE_MULTIPLE_FILES }}
+        title: Coverage summary
+        badge-title: Coverage
+        coverage-title: Coverage Report
+        coverage-path: ${{ inputs.JEST_COVERAGE_PATH }}
+
+    - name: Update the coverage badge
+      if: github.ref == 'refs/heads/main' && (github.event_name == 'pull_request' || github.event_name == 'push')
+      uses: schneegans/dynamic-badges-action@v1.6.0
+      with:
+        auth: ${{ inputs.JEST_BADGE_UPDATE_GIST_TOKEN }}
+        gistID: ${{ inputs.JEST_BADGE_UPDATE_GIST_ID }}
+        filename: ${{ inputs.JEST_BADGE_UPDATE_GIST_FILE_NAME }}
+        label: Coverage
+        message: ${{ steps.coverageComment.outputs.coverage }}%
+        color: ${{ steps.coverageComment.outputs.color }}
+        namedLogo: ${{ inputs.JEST_BADGE_LOGO_NAME }}
