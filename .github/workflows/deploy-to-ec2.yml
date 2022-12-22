@@ -6,7 +6,7 @@ on:
       NODE_ENV:
         required: true
         type: string
-      BRANCH_NAME:
+      HEAD_REF:
         required: true
         type: string
       AWS_REGION:
@@ -62,7 +62,7 @@ jobs:
       with:
         route: POST /repos/:repository/deployments
         repository: ${{ github.repository }}
-        ref: ${{ inputs.BRANCH_NAME }}
+        ref: ${{ inputs.HEAD_REF }}
         environment: ${{ inputs.NODE_ENV }}
         auto_merge: false
       env:
@@ -163,7 +163,7 @@ jobs:
             git fetch
             git fetch --tags
             git reset --hard
-            git checkout ${{ inputs.BRANCH_NAME }}
+            git checkout origin/${{ inputs.HEAD_REF }}
             npm ci
             ${{ inputs.AWS_EC2_APP_RESTART_COMMAND }}
             sleep 10
