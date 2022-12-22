@@ -62,7 +62,7 @@ jobs:
       with:
         route: POST /repos/:repository/deployments
         repository: ${{ github.repository }}
-        ref: ${{ github.head_ref || github.ref }}
+        ref: ${{ inputs.BRANCH_NAME }}
         environment: ${{ inputs.NODE_ENV }}
         auto_merge: false
       env:
