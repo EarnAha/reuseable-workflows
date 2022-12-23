@@ -1,0 +1,37 @@
+name: Pre-check Pull Request
+
+on:
+  workflow_call:
+    inputs:
+      act:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+
+env:
+
+jobs:
+  find-unresolved-conflict:
+    runs-on: self-hosted
+    name: Find unresolved merge conflicts
+    steps:
+      # Checkout the source code so there are some files to look at.
+      - uses: actions/checkout@v3
+      # Run the actual merge conflict finder
+      - name: Merge Conflict finder
+        uses: olivernybroe/action-conflict-finder@v4.0
+
+  notify-new-conflict:
+    if: ${{ !env.act }}
+    runs-on: self-hosted
+    name: Notify user if has new merge conflicts
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: nokamoto/merge-conflict-action@v0.0.2
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: Merge Conflict found! @here
