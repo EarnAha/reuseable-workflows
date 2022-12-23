@@ -186,7 +186,7 @@ jobs:
         env:
           HEAD_SHA: ${{ inputs.HEAD_SHA }}
         run: |
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-7`" >> $GITHUB_ENV
+          echo "SHORT_SHA=`echo ${HEAD_SHA} | cut -c1-7`" >> $GITHUB_ENV
           echo "Current branch name is $GITHUB_REF_NAME"
           echo "Current branch SHA is $GITHUB_SHA"
           echo "Expected deployed short-SHA is $HEAD_SHA"
