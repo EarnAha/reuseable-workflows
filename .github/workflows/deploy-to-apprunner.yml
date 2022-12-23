@@ -3,6 +3,10 @@ name: Deploy to App Runner
 on:
   workflow_call:
     inputs:
+      BRANCH_REF:
+        required: false
+        type: string
+        default: main
       NODE_ENV:
         required: true
         type: string
@@ -84,6 +88,7 @@ env:
   SENTRY_SOURCEMAP_PATH: ${{ inputs.SENTRY_SOURCEMAP_PATH }}
 
 jobs:
+
   create-deployment:
     runs-on: self-hosted
     # Map a step output to a job output

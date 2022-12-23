@@ -105,3 +105,4 @@ runs:
         message: ${{ steps.coverageComment.outputs.coverage }}%
         color: ${{ steps.coverageComment.outputs.color }}
         namedLogo: ${{ inputs.JEST_BADGE_LOGO_NAME }}
+        forceUpdate: true
