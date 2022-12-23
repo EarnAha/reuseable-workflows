@@ -88,7 +88,6 @@ env:
   SENTRY_SOURCEMAP_PATH: ${{ inputs.SENTRY_SOURCEMAP_PATH }}
 
 jobs:
-
   create-deployment:
     runs-on: self-hosted
     # Map a step output to a job output

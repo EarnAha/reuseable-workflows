@@ -10,6 +10,9 @@ on:
         required: true
         type: string
         default: main
+      HEAD_SHA:
+        required: true
+        type: string
       AWS_REGION:
         required: true
         type: string
@@ -180,18 +183,22 @@ jobs:
       #
       # =========================================================
       - name: Add SHORT_SHA env property with commit short sha
+        env:
+          HEAD_SHA: ${{ inputs.HEAD_SHA }}
         run: |
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-7`" >> $GITHUB_ENV
           echo "Current branch name is $GITHUB_REF_NAME"
           echo "Current branch SHA is $GITHUB_SHA"
-          echo "Expected deployed short-SHA is $SHORT_SHA"
+          echo "Expected deployed short-SHA is $HEAD_SHA"
 
       - name: Check SHA of latest deployment
         uses: mydea/action-wait-for-api@v1.0.0
+        env:
+          HEAD_SHA: ${{ inputs.HEAD_SHA }}
         with:
           url: ${{ inputs.AWS_EC2_SHA_CHECK_URL }}
           expected-response-field: ${{ inputs.AWS_EC2_SHA_EXPECTED_VALUE_PATH }}
-          expected-response-field-value: ${{ env.SHORT_SHA }}
+          expected-response-field-value: ${{ env.HEAD_SHA }}
           timeout: ${{ inputs.AWS_EC2_APP_WAIT_SECONDS }}
           interval: 10
 
