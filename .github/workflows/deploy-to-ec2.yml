@@ -179,14 +179,16 @@ jobs:
       #
       # =========================================================
       - name: Add SHORT_SHA env property with commit short sha
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-7`" >> $GITHUB_ENV
+        run: |
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-7`" >> $GITHUB_ENV
+          echo "Expected deployed SHA is $SHORT_SHA"
 
       - name: Check SHA of latest deployment
         uses: mydea/action-wait-for-api@v1.0.0
         with:
           url: ${{ inputs.AWS_EC2_SHA_CHECK_URL }}
           expected-response-field: ${{ inputs.AWS_EC2_SHA_EXPECTED_VALUE_PATH }}
-          expected-response-field-value: ${{ inputs.SHORT_SHA }}
+          expected-response-field-value: ${{ env.SHORT_SHA }}
           timeout: ${{ inputs.AWS_EC2_APP_WAIT_SECONDS }}
           interval: 10
 
