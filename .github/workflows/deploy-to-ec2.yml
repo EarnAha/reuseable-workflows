@@ -168,9 +168,9 @@ jobs:
             ${{ inputs.AWS_EC2_APP_RESTART_COMMAND }}
             sleep 10
             pm2 logs ${{ inputs.AWS_EC2_APP_FOLDER_NAME }} --nostream --lines 100
-          host: ${{ inputs.AWS_EC2_HOST_NAME }}
+          host: ${{ secrets.AHA_DEV_HOST }}
           user: ubuntu
-          key: ${{ inputs.EC2_SSH_KEY }}
+          key: ${{ secrets.SSH_KEY_AHA_DEV_VALUE }}
 
 
       # =========================================================
