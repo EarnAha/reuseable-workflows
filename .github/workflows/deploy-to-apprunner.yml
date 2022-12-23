@@ -55,6 +55,9 @@ on:
         required: false
         type: string
         default: 'data.commit'
+      AWS_ECR_REPOSITORY:
+        required: true
+        type: string
       SENTRY_ORG_NAME:
         required: true
         type: string
@@ -208,7 +211,7 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: api-auth-742084164729-ap-northeast-1
+          ECR_REPOSITORY: ${{ inputs.AWS_ECR_REPOSITORY }}
           IMAGE_TAG: ${{ steps.package.outputs.version }}-${{ steps.branch_name.outputs.value }}-${{ github.sha }}
         run: |
           echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
@@ -220,12 +223,6 @@ jobs:
       - name: Deploy to App Runner Image
         id: deploy-apprunner
         uses: EarnAha/amazon-app-runner-deploy@main
-        #env:
-          #SENTRY_DSN: ${{ env.API_AUTH_SECRET_SENTRY_DSN }}
-          #DB_CONN_STR: ${{ env.API_AUTH_SECRET_DB_CONN_STR }}
-          #AUTH0_DOMAIN: ${{ env.API_AUTH_SECRET_SENTRY_DSN }}
-          #AUTH0_CLIENT_ID: ${{ env.API_AUTH_SECRET_AUTH0_CLIENT_ID }}
-          #AUTH0_CLIENT_SECRET: ${{ env.API_AUTH_SECRET_AUTH0_CLIENT_SECRET }}
         with:
           service: ${{ env.AWS_APP_RUNNER_SERVICE_NAME }}
           image: ${{ steps.build-image.outputs.image }}
