@@ -9,6 +9,7 @@ on:
       HEAD_REF:
         required: true
         type: string
+        default: main
       AWS_REGION:
         required: true
         type: string
@@ -81,7 +82,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           persist-credentials: false
-          #ref: main
+          ref: ${{ inputs.HEAD_REF }}
 
       - name: Read package info
         id: package
@@ -180,8 +181,10 @@ jobs:
       # =========================================================
       - name: Add SHORT_SHA env property with commit short sha
         run: |
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-7`" >> $GITHUB_ENV
-          echo "Expected deployed SHA is $SHORT_SHA"
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+          echo "Current branch name is $GITHUB_REF_NAME"
+          echo "Current branch SHA is $GITHUB_SHA"
+          echo "Expected deployed short-SHA is $SHORT_SHA"
 
       - name: Check SHA of latest deployment
         uses: mydea/action-wait-for-api@v1.0.0
