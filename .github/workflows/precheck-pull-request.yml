@@ -7,9 +7,8 @@ on:
         required: false
         type: boolean
         default: false
-    secrets:
-
-env:
+    #secrets:
+#env:
 
 jobs:
   find-unresolved-conflict:
