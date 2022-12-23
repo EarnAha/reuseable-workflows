@@ -203,7 +203,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: api-auth-742084164729-ap-northeast-1
-          IMAGE_TAG: ${{ steps.package.outputs.version }}-${{ github.sha }}
+          IMAGE_TAG: ${{ steps.package.outputs.version }}-${{ github.head_ref || github.ref }}-${{ github.sha }}
         run: |
           echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           docker build --build-arg NODE_ENV=${{ env.NODE_ENV }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . 
