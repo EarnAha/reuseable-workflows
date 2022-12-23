@@ -2,11 +2,7 @@ name: Pre-check Pull Request
 
 on:
   workflow_call:
-    inputs:
-      act:
-        required: false
-        type: boolean
-        default: false
+    #inputs:
     #secrets:
 #env:
 
@@ -22,7 +18,6 @@ jobs:
         uses: olivernybroe/action-conflict-finder@v4.0
 
   notify-new-conflict:
-    if: ${{ !env.act }}
     runs-on: self-hosted
     name: Notify user if has new merge conflicts
     steps:
