@@ -1,0 +1,25 @@
+name: Clean workspace
+on:
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 5'
+
+jobs:
+  cleanup:
+    runs-on: self-hosted
+    steps:
+      - name: clean workflow runs
+        uses: boredland/action-purge-workflow-runs@main
+        with:
+          days-old: 14
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean jest cache
+        run: npx jest --clearCache
+        shell: bash
+
+      - name: Clean all docker things to free spaces
+        shell: bash
+        run: docker system prune -a -f --volumes
