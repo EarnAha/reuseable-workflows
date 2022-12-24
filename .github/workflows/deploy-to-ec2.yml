@@ -208,7 +208,7 @@ jobs:
           url: ${{ inputs.AWS_EC2_APP_SERVICE_URL }}
           #url: ${{ inputs.AWS_EC2_APP_SERVICE_URL }}?t=${{ env.TIMESTAMP }}
           expected-response-field: ${{ inputs.AWS_EC2_SHA_EXPECTED_VALUE_PATH }}
-          expected-response-field-value: ${{ steps.get-short-sha.outputs.$SHORT_SHA }}
+          expected-response-field-value: ${{ steps.get-short-sha.outputs.SHORT_SHA }}
           timeout: ${{ inputs.AWS_EC2_APP_WAIT_SECONDS }}
           interval: ${{ inputs.AWS_EC2_APP_INTERVAL }}
           headers: '{"pragma":"no-cache","cache-control":"no-cache"}'
