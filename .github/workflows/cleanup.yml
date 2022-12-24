@@ -17,7 +17,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Clean jest cache
-        run: npx jest --clearCache
+        run: rm -rf /tmp/jest_rs
         shell: bash
 
       - name: Clean all docker things to free spaces
