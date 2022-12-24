@@ -202,6 +202,7 @@ jobs:
           expected-response-field-value: ${{ env.HEAD_SHA }}
           timeout: ${{ inputs.AWS_EC2_APP_WAIT_SECONDS }}
           interval: 10
+          headers: '{"pragma":"no-cache","cache-control":"no-cache"}'
 
       # =========================================================
       #
