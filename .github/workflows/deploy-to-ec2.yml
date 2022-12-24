@@ -22,7 +22,7 @@ on:
       AWS_SECRET_RETRIEVE_IDS:
         required: true
         type: string
-      AWS_EC2_SHA_CHECK_URL:
+      AWS_EC2_SERVICE_URL:
         required: true
         type: string
       AWS_EC2_SHA_EXPECTED_VALUE_PATH:
@@ -33,6 +33,10 @@ on:
         required: false
         type: number
         default: 300
+      AWS_EC2_APP_INTERVAL:
+        required: false
+        type: number
+        default: 10
       SENTRY_ORG_NAME:
         required: true
         type: string
@@ -152,7 +156,7 @@ jobs:
           repository: ${{ github.repository }}
           deployment: ${{ needs.create-deployment.outputs.deploymentId }}
           environment: ${{ inputs.NODE_ENV }}
-          environment_url: ${{ inputs.AWS_EC2_SHA_CHECK_URL }}
+          environment_url: ${{ inputs.AWS_EC2_SERVICE_URL }}
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           state: in_progress
           mediaType: '{"previews": ["flash", "ant-man"]}'
@@ -191,19 +195,20 @@ jobs:
           echo "TIMESTAMP=$(date +%Y%m%d%H%M%S%N)" >> $GITHUB_ENV
           echo "Current branch name is $GITHUB_REF_NAME"
           echo "Current branch SHA is $GITHUB_SHA"
-          echo "Current TIMESTAMP is TIMESTAMP"
-          echo "Expected deployed short-SHA is $HEAD_SHA"
+          echo "Current TIMESTAMP is $TIMESTAMP"
+          echo "Expected deployed short-SHA is $SHORT_SHA"
 
       - name: Check SHA of latest deployment
         uses: mydea/action-wait-for-api@v1.0.0
         env:
           HEAD_SHA: ${{ inputs.HEAD_SHA }}
         with:
-          url: ${{ inputs.AWS_EC2_SHA_CHECK_URL }}?t=${{ env.TIMESTAMP }}
+          url: http://${{ secrets.AWS_EC2_HOST_NAME }}/${{ inputs.AWS_EC2_SHA_CHECK_PATH }}
+          #url: ${{ inputs.AWS_EC2_SERVICE_URL }}?t=${{ env.TIMESTAMP }}
           expected-response-field: ${{ inputs.AWS_EC2_SHA_EXPECTED_VALUE_PATH }}
           expected-response-field-value: ${{ env.HEAD_SHA }}
           timeout: ${{ inputs.AWS_EC2_APP_WAIT_SECONDS }}
-          interval: 10
+          interval: ${{ inputs.AWS_EC2_APP_INTERVAL }}
           headers: '{"pragma":"no-cache","cache-control":"no-cache"}'
 
       # =========================================================
@@ -240,7 +245,7 @@ jobs:
           repository: ${{ github.repository }}
           deployment: ${{ needs.create-deployment.outputs.deploymentId }}
           environment: ${{ inputs.NODE_ENV }}
-          environment_url: ${{ inputs.AWS_EC2_SHA_CHECK_URL }}
+          environment_url: ${{ inputs.AWS_EC2_SERVICE_URL }}
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           mediaType: '{"previews": ["ant-man"]}'
           state: success
@@ -256,7 +261,7 @@ jobs:
           repository: ${{ github.repository }}
           deployment: ${{ needs.create-deployment.outputs.deploymentId }}
           environment: ${{ inputs.NODE_ENV }}
-          environment_url: ${{ inputs.AWS_EC2_SHA_CHECK_URL }}
+          environment_url: ${{ inputs.AWS_EC2_SERVICE_URL }}
           log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           mediaType: '{"previews": ["ant-man"]}'
           state: failure
