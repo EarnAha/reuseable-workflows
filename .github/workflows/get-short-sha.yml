@@ -31,5 +31,5 @@ jobs:
       - name: Get ref/sha
         id: get_ref
         run: |
-          echo "HEAD_SHA=`echo ${_HEAD_SHA} | cut -c1-7`" >> $GITHUB_OUTPUT
-          echo "HEAD_REF=`echo ${_HEAD_REF}`" >> $GITHUB_OUTPUT
+          echo "HEAD_SHA=`echo ${{inputs._HEAD_SHA}} | cut -c1-7`" >> $GITHUB_OUTPUT
+          echo "HEAD_REF=`echo ${{inputs._HEAD_REF}}`" >> $GITHUB_OUTPUT
