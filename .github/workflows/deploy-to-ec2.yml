@@ -37,9 +37,6 @@ on:
         required: false
         type: number
         default: 10
-      SENTRY_ORG_NAME:
-        required: true
-        type: string
       SENTRY_SOURCEMAP_PATH:
         required: true
         type: string
@@ -55,6 +52,8 @@ on:
       SENTRY_PROJECT_NAME:
         required: true
       SENTRY_AUTH_TOKEN:
+        required: true
+      SENTRY_ORG_NAME:
         required: true
 
 jobs:
@@ -223,7 +222,7 @@ jobs:
         uses: getsentry/action-release@v1
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ inputs.SENTRY_ORG_NAME }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG_NAME }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT_NAME }}
           # SENTRY_URL: https://sentry.io/
         with:

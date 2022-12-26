@@ -58,13 +58,12 @@ on:
       AWS_ECR_REPOSITORY:
         required: true
         type: string
-      SENTRY_ORG_NAME:
-        required: true
-        type: string
       SENTRY_SOURCEMAP_PATH:
         required: true
         type: string
     secrets:
+      SENTRY_ORG_NAME:
+        required: true
       SENTRY_PROJECT_NAME:
         required: true
       SENTRY_AUTH_TOKEN:
@@ -85,7 +84,7 @@ env:
   AWS_APP_RUNNER_COPY_ENVS_REPLACE_STRING: ${{ inputs.AWS_APP_RUNNER_COPY_ENVS_REPLACE_STRING }}
   AWS_APP_RUNNER_SHA_CHECK_PATH: ${{ inputs.AWS_APP_RUNNER_SHA_CHECK_PATH }}
   AWS_APP_RUNNER_SHA_EXPECTED_VALUE_PATH: ${{ inputs.AWS_APP_RUNNER_SHA_EXPECTED_VALUE_PATH }}
-  SENTRY_ORG_NAME: ${{ inputs.SENTRY_ORG_NAME }}
+  SENTRY_ORG_NAME: ${{ secrets.SENTRY_ORG_NAME }}
   SENTRY_PROJECT_NAME: ${{ secrets.SENTRY_PROJECT_NAME }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   SENTRY_SOURCEMAP_PATH: ${{ inputs.SENTRY_SOURCEMAP_PATH }}
