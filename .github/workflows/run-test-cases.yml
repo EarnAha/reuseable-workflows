@@ -51,6 +51,12 @@ on:
       SLACK_WEBHOOK_URL:
         required: true
 
+env:
+  DB_HOST: localhost
+  DB_DBNAME: database_test
+  DB_USER: user
+  DB_PASSWORD: password
+
 jobs:
   do:
     runs-on: self-hosted
