@@ -2,7 +2,13 @@ name: Get latest tag info
 
 on:
   workflow_call:
-    #inputs:
+    inputs:
+      _HEAD_SHA:
+        type: string
+        required: true
+      _HEAD_REF:
+        type: string
+        required: true
     outputs:
       HEAD_SHA:
         description: "HEAD SHA"
@@ -10,9 +16,6 @@ on:
       HEAD_REF:
         description: "HEAD REF"
         value: ${{ jobs.do.outputs.HEAD_REF }}
-    #secrets:
-#env:
-
 jobs:
   do:
     outputs:
@@ -28,5 +31,5 @@ jobs:
       - name: Get ref/sha
         id: get_ref
         run: |
-          echo "HEAD_SHA=`echo ${THIS_HEAD_SHA} | cut -c1-7`" >> $GITHUB_OUTPUT
-          echo "HEAD_REF=`echo ${THIS_HEAD_REF}`" >> $GITHUB_OUTPUT
+          echo "HEAD_SHA=`echo ${_HEAD_SHA} | cut -c1-7`" >> $GITHUB_OUTPUT
+          echo "HEAD_REF=`echo ${_HEAD_REF}`" >> $GITHUB_OUTPUT
