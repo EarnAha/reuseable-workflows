@@ -7,7 +7,7 @@ on:
 #env:
 
 jobs:
-  do:
+  make-response:
     runs-on: self-hosted
     steps:
       - name: acknowledge deployment request to commenter
@@ -20,3 +20,25 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     outputs:
       triggered: ${{ steps.check.outputs.triggered }}
+
+  get-pr-info:
+    needs: make-response
+    runs-on: self-hosted
+    outputs:
+      pull_request_ref: ${{ steps.get_pull_request_ref.outputs.data }}
+    if: needs.check-deploy-comment.outputs.triggered == 'true'
+    steps:
+      - name: Get pull request ref
+        id: get_pull_request_ref
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /repos/:repository/pulls/:issue_id
+          repository: ${{ github.repository }}
+          issue_id: ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Shows PR information
+        run: |
+          echo Head Ref: ${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}
+        shell: bash
