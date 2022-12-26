@@ -1,0 +1,34 @@
+name: Get latest tag info
+
+on:
+  workflow_call:
+    #inputs:
+    outputs:
+      PREVIOUS_TAG:
+        description: "the latest tag"
+        value: ${{ jobs.do.outputs.PREVIOUS_TAG }}
+    #secrets:
+#env:
+
+jobs:
+  do:
+    runs-on: self-hosted
+    outputs:
+      PREVIOUS_TAG: ${{ steps.previoustag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Required due to the way Git works, without it this action won't be able to find any or the correct tags with:
+      - name: 'Get Previous tag'
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        with:
+          fallback: ${{ github.event.release.tag_name }}
+      - name: Check Pre-release info
+        run: |
+          echo "Release Name: ${{ github.event.release.name }}"
+          echo "Tag Name: ${{ github.event.release.tag_name }}"
+          echo "Url: ${{ github.event.release.html_url }}"
+          echo event tag name: tags/${{ github.event.release.tag_name }}
+          echo possible latest tag: ${{ steps.previoustag.outputs.tag }}
+          

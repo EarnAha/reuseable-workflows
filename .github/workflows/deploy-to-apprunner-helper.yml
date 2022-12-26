@@ -1,0 +1,63 @@
+name: Deploy to apprunner
+
+on:
+  workflow_call:
+    inputs:
+      BRANCH_REF:
+        required: true
+        type: string
+      NODE_ENV:
+        required: true
+        type: string
+      SERVICE_NAME:
+        required: true
+        type: string
+      AWS_ACCOUNT:
+        required: true
+        type: number
+      AWS_APP_RUNNER_COPY_ENVS:
+        required: true
+        type: string
+      APP_PORT:
+        required: false
+        type: number
+        default: 5100
+      AWS_APP_RUNNER_CPU:
+        required: false
+        type: number
+        default: 1
+      AWS_APP_RUNNER_MEMORY:
+        required: false
+        type: number
+        default: 2
+
+jobs:
+  deploy-to-app-runner:
+    uses: EarnAha/reuseable-workflows/.github/workflows/deploy-to-apprunner.yml@main
+    with:
+      BRANCH_REF: ${{ inputs.BRANCH_REF }}
+      NODE_ENV: ${{ inputs.NODE_ENV }}
+      APP_PORT: ${{ inputs.APP_PORT }}
+      AWS_REGION: 'ap-northeast-1'
+      AWS_ECR_REPOSITORY: 'api-${{ inputs.SERVICE_NAME }}-${{ inputs.AWS_ACCOUNT }}-ap-northeast-1'
+      AWS_ASSUME_ROLE_ARN: 'arn:aws:iam::${{ inputs.AWS_ACCOUNT }}:role/github-action-role'
+      AWS_SECRET_RETRIEVE_IDS: |
+        AWS_SECRETS,api-${{ inputs.SERVICE_NAME }}/secret
+      AWS_APP_RUNNER_SERVICE_NAME: ${{ inputs.NODE_ENV }}-app-runner-api-${{ inputs.SERVICE_NAME }}
+      AWS_APP_RUNNER_CPU: ${{ inputs.AWS_APP_RUNNER_CPU }}
+      AWS_APP_RUNNER_MEMORY: ${{ inputs.AWS_APP_RUNNER_MEMORY }}
+      AWS_APP_RUNNER_WAIT_SECONDS: 600
+      AWS_APP_RUNNER_SHA_CHECK_PATH: /${{ inputs.SERVICE_NAME }}/info
+      AWS_APP_RUNNER_ASSUME_ROLE_ARN: 'arn:aws:iam::${{ inputs.AWS_ACCOUNT }}:role/service-role/AppRunnerECRAccessRole'
+      AWS_APP_RUNNER_COPY_ENVS: ${{ inputs.AWS_APP_RUNNER_COPY_ENVS }}
+#      |
+#        APP_PORT
+#        AWS_SECRETS_SENTRY_DSN
+#        AWS_SECRETS_DB_CONN_STR
+#        AWS_SECRETS_AUTH0_DOMAIN
+#        AWS_SECRETS_AUTH0_CLIENT_ID
+#        AWS_SECRETS_AUTH0_CLIENT_SECRET
+#        AWS_SECRETS_ACCESS_KEY
+#        AWS_SECRETS_ACCESS_SALT
+      SENTRY_SOURCEMAP_PATH: './src'
+    secrets: inherit

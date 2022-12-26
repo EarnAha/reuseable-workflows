@@ -1,0 +1,32 @@
+name: Get latest tag info
+
+on:
+  workflow_call:
+    #inputs:
+    outputs:
+      HEAD_SHA:
+        description: "HEAD SHA"
+        value: ${{ jobs.do.outputs.HEAD_SHA }}
+      HEAD_REF:
+        description: "HEAD REF"
+        value: ${{ jobs.do.outputs.HEAD_REF }}
+    #secrets:
+#env:
+
+jobs:
+  do:
+    outputs:
+      HEAD_SHA: ${{ steps.get_ref.outputs.HEAD_SHA }}
+      HEAD_REF: ${{ steps.get_ref.outputs.HEAD_REF }}
+    runs-on: self-hosted
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Get ref/sha
+        id: get_ref
+        run: |
+          echo "HEAD_SHA=`echo ${THIS_HEAD_SHA} | cut -c1-7`" >> $GITHUB_OUTPUT
+          echo "HEAD_REF=`echo ${THIS_HEAD_REF}`" >> $GITHUB_OUTPUT
