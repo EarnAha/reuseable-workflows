@@ -163,7 +163,6 @@ jobs:
         env:
           ENV_VARS: ${{ toJson(env) }}
         run: |
-          echo "TIMESTAMP=$(date +%Y%m%d%H%M%S%N)" >> $GITHUB_ENV
           echo "$ENV_VARS"
 
       - name: Dump GitHub context
@@ -210,12 +209,17 @@ jobs:
           find: '/'
           replace: '-'
 
+      - name: Get current timestamp
+        id: TIMESTAMP
+        run: |
+          echo "value=$(date +%Y%m%d%H%M%S%N)" >> $GITHUB_OUTPUT
+
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ inputs.AWS_ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ steps.package.outputs.version }}-${{ steps.branch_name.outputs.value }}-${{ env.TIMESTAMP }}-${{ github.sha }}
+          IMAGE_TAG: ${{ steps.package.outputs.version }}-${{ steps.branch_name.outputs.value }}-${{ steps.TIMESTAMP.outputs.value }}-${{ github.sha }}
         run: |
           echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           docker build --build-arg NODE_ENV=${{ env.NODE_ENV }} --build-arg APP_PORT=${{ env.APP_PORT }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . 
