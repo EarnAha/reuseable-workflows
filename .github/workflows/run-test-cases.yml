@@ -1,0 +1,100 @@
+name: Verify Pull Request
+
+on:
+  workflow_call:
+    inputs:
+      act:
+        required: false
+        type: boolean
+        default: false
+      APP_PORT:
+        required: false
+        type: number
+        default: 3333
+      DB_HOST:
+        required: false
+        type: string
+        default: localhost
+      DB_DBNAME:
+        required: false
+        type: string
+        default: database_test
+      DB_USER:
+        required: false
+        type: string
+        default: user
+      DB_PASSWORD:
+        required: false
+        type: string
+        default: password
+      JEST_NODE_VERSION:
+        required: false
+        type: string
+        default: '16'
+      JEST_RUN_UT:
+        required: true
+        type: boolean
+        default: true
+      JEST_RUN_FT:
+        required: true
+        type: boolean
+        default: false
+      JEST_RUN_IT:
+        required: true
+        type: boolean
+        default: false
+    secrets:
+      JEST_COVERAGE_MULTIPLE_FILES:
+        required: true
+      JEST_BADGE_LOGO_NAME:
+        required: true
+      JEST_BADGE_UPDATE_GIST_FILE_NAME:
+        required: true
+      JEST_BADGE_UPDATE_GIST_ID:
+        required: true
+      JEST_BADGE_UPDATE_GIST_TOKEN:
+        required: true
+      SLACK_WEBHOOK_URL:
+        required: true
+
+jobs:
+  do:
+    runs-on: self-hosted
+    services:
+      postgres:
+        image: postgres:14
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+        env:
+          POSTGRES_HOST: ${{ env.DB_HOST }}
+          POSTGRES_DB: ${{ env.DB_DBNAME }}
+          POSTGRES_USER: ${{ env.DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: oNaiPs/secrets-to-env-action@v1
+        with:
+          secrets: ${{ toJSON(secrets) }}
+      - name: Running test cases
+        uses: EarnAha/reuseable-workflows/.github/actions/run-jest@main
+        with:
+          NODE_VERSION: 16
+          RUN_UT: true
+          RUN_FT: true
+          RUN_IT: false
+          JEST_COVERAGE_MULTIPLE_FILES: |
+            Main, ./src/tests/coverage-summary.json
+            ${{ github.head_ref }}, ./coverage/coverage-summary.json
+          JEST_BADGE_UPDATE_GIST_FILE_NAME: ${{ secrets.JEST_BADGE_UPDATE_GIST_FILE_NAME }}
+          JEST_BADGE_UPDATE_GIST_TOKEN: ${{ secrets.JEST_BADGE_UPDATE_GIST_TOKEN }}
+          JEST_BADGE_UPDATE_GIST_ID: ${{ secrets.JEST_BADGE_UPDATE_GIST_ID }}
+          JEST_BADGE_LOGO_NAME: ${{ secrets.JEST_BADGE_LOGO_NAME }}
+
+      - uses: 8398a7/action-slack@v3
+        if: ${{ always() }} # Pick up events even if the job fails or is canceled.
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took,pullRequest # selectable (default: repo,message)
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required
