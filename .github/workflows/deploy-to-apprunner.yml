@@ -70,6 +70,8 @@ on:
         required: true
 
 env:
+  GITHUB_ACTION: true
+  DOTENV_FLOW_SILENT: true
   NODE_ENV: ${{ inputs.NODE_ENV }}
   APP_PORT: ${{ inputs.APP_PORT }}
   AWS_REGION: ${{ inputs.AWS_REGION }}

@@ -56,6 +56,10 @@ on:
       SENTRY_ORG_NAME:
         required: true
 
+env:
+  GITHUB_ACTION: true
+  DOTENV_FLOW_SILENT: true
+
 jobs:
   create-deployment:
     runs-on: self-hosted
