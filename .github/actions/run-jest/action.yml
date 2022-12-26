@@ -63,15 +63,15 @@ runs:
           */*/node_modules
         key: ${{ inputs.NODE_VERSION }}-${{ hashFiles('package-lock.json') }}
 
-    - name: Install dependencies
-      shell: bash
-      run: npm ci
-
     - name: Export DB_CONN_STR
       run: |
         echo "DB_CONN_STR=postgres://$DB_USER:$DB_PASSWORD@$DB_HOST:5432/$DB_DBNAME" >> $GITHUB_ENV;
         echo DB_CONN_STR: $DB_CONN_STR;
       shell: bash
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
 
     - name: Run unit test cases
       if: ${{ inputs.RUN_UT == 'true' }}
