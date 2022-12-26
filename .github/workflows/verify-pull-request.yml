@@ -60,7 +60,7 @@ on:
         required: false
         type: string
     secrets:
-      JEST_COVERAGE_COMMENT:
+      JEST_BADGE_UPDATE_GIST_TOKEN:
         required: true
       SLACK_WEBHOOK_URL:
         required: true
