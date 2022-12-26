@@ -9,7 +9,6 @@ on:
 jobs:
   do:
     runs-on: self-hosted
-    needs: [check-deploy-comment]
     outputs:
       pull_request_ref: ${{ steps.get_pull_request_ref.outputs.data }}
     if: needs.check-deploy-comment.outputs.triggered == 'true'
