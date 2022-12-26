@@ -40,8 +40,6 @@ on:
         type: boolean
         default: false
     secrets:
-      JEST_COVERAGE_MULTIPLE_FILES:
-        required: true
       JEST_BADGE_LOGO_NAME:
         required: true
       JEST_BADGE_UPDATE_GIST_FILE_NAME:
