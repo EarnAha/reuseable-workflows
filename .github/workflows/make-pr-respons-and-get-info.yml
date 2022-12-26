@@ -3,6 +3,10 @@ name: Check deploy comment
 on:
   workflow_call:
     #inputs:
+    outputs:
+      PULL_REQUEST_REF:
+        description: "the pr content"
+        value: ${{ jobs.get-pr-info.outputs.pull_request_ref }}
     #secrets:
 #env:
 
