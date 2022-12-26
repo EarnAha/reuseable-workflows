@@ -37,9 +37,6 @@ on:
         required: false
         type: number
         default: 10
-      SENTRY_SOURCEMAP_PATH:
-        required: true
-        type: string
       AWS_EC2_APP_FOLDER_NAME:
         required: true
         type: string
@@ -48,6 +45,8 @@ on:
         type: string
     secrets:
       AWS_EC2_HOST_NAME:
+        required: true
+      SENTRY_SOURCEMAP_PATH:
         required: true
       SENTRY_PROJECT_NAME:
         required: true
@@ -231,7 +230,7 @@ jobs:
           # SENTRY_URL: https://sentry.io/
         with:
           version: ${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }}
-          sourcemaps: ${{ inputs.SENTRY_SOURCEMAP_PATH }}
+          sourcemaps: ${{ secrets.SENTRY_SOURCEMAP_PATH }}
           environment: ${{ inputs.NODE_ENV }}
           ignore_empty: true
 

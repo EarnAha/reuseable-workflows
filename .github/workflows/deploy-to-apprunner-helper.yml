@@ -30,10 +30,19 @@ on:
         required: false
         type: number
         default: 2
+    secrets:
+      SENTRY_SOURCEMAP_PATH:
+        required: true
+      SENTRY_ORG_NAME:
+        required: true
+      SENTRY_PROJECT_NAME:
+        required: true
+      SENTRY_AUTH_TOKEN:
+        required: true
 
 jobs:
   deploy-to-app-runner:
-    uses: EarnAha/reuseable-workflows/.github/workflows/deploy-to-apprunner.yml@main
+    uses: ./.github/workflows/deploy-to-apprunner.yml@main
     with:
       BRANCH_REF: ${{ inputs.BRANCH_REF }}
       NODE_ENV: ${{ inputs.NODE_ENV }}
@@ -50,14 +59,4 @@ jobs:
       AWS_APP_RUNNER_SHA_CHECK_PATH: /${{ inputs.SERVICE_NAME }}/info
       AWS_APP_RUNNER_ASSUME_ROLE_ARN: 'arn:aws:iam::${{ inputs.AWS_ACCOUNT }}:role/service-role/AppRunnerECRAccessRole'
       AWS_APP_RUNNER_COPY_ENVS: ${{ inputs.AWS_APP_RUNNER_COPY_ENVS }}
-#      |
-#        APP_PORT
-#        AWS_SECRETS_SENTRY_DSN
-#        AWS_SECRETS_DB_CONN_STR
-#        AWS_SECRETS_AUTH0_DOMAIN
-#        AWS_SECRETS_AUTH0_CLIENT_ID
-#        AWS_SECRETS_AUTH0_CLIENT_SECRET
-#        AWS_SECRETS_ACCESS_KEY
-#        AWS_SECRETS_ACCESS_SALT
-      SENTRY_SOURCEMAP_PATH: './src'
     secrets: inherit

@@ -58,10 +58,9 @@ on:
       AWS_ECR_REPOSITORY:
         required: true
         type: string
+    secrets:
       SENTRY_SOURCEMAP_PATH:
         required: true
-        type: string
-    secrets:
       SENTRY_ORG_NAME:
         required: true
       SENTRY_PROJECT_NAME:
@@ -89,7 +88,7 @@ env:
   SENTRY_ORG_NAME: ${{ secrets.SENTRY_ORG_NAME }}
   SENTRY_PROJECT_NAME: ${{ secrets.SENTRY_PROJECT_NAME }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  SENTRY_SOURCEMAP_PATH: ${{ inputs.SENTRY_SOURCEMAP_PATH }}
+  SENTRY_SOURCEMAP_PATH: ${{ secrets.SENTRY_SOURCEMAP_PATH }}
 
 jobs:
   create-deployment:
