@@ -20,14 +20,14 @@ jobs:
         id: beta
         if: inputs.NODE_ENV == 'beta' || inputs.NODE_ENV == 'dev'
         run: |
-          echo "AWS_ACCOUNT=`echo ${{ secrets.AWS_ACCOUNT_BETA }} | base64`" >> $GITHUB_OUTPUT
+          echo "AWS_ACCOUNT=742084164729" >> $GITHUB_OUTPUT
       - name: Get AWS_ACCOUNT
         id: gamma
         if: inputs.NODE_ENV == 'gamma'
         run: |
-          echo "AWS_ACCOUNT=`echo ${{ secrets.AWS_ACCOUNT_GAMMA }} | base64`" >> $GITHUB_OUTPUT
+          echo "AWS_ACCOUNT=336932466870" >> $GITHUB_OUTPUT
       - name: Get AWS_ACCOUNT
         id: prod
         if: inputs.NODE_ENV == 'prod'
         run: |
-          echo "AWS_ACCOUNT=`echo ${{ secrets.AWS_ACCOUNT_PROD }} | base64`" >> $GITHUB_OUTPUT
+          echo "AWS_ACCOUNT=944723853722" >> $GITHUB_OUTPUT
