@@ -3,10 +3,6 @@ name: Verify Pull Request
 on:
   workflow_call:
     inputs:
-      act:
-        required: false
-        type: boolean
-        default: false
       APP_PORT:
         required: false
         type: number
@@ -67,10 +63,10 @@ jobs:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
         env:
-          POSTGRES_HOST: ${{ env.DB_HOST }}
-          POSTGRES_DB: ${{ env.DB_DBNAME }}
-          POSTGRES_USER: ${{ env.DB_USER }}
-          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
+          POSTGRES_HOST: ${{ inputs.DB_HOST }}
+          POSTGRES_DB: ${{ inputs.DB_DBNAME }}
+          POSTGRES_USER: ${{ inputs.DB_USER }}
+          POSTGRES_PASSWORD: ${{ inputs.DB_PASSWORD }}
     steps:
       - uses: actions/checkout@v3
       - uses: oNaiPs/secrets-to-env-action@v1
