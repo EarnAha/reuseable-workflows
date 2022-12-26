@@ -14,7 +14,7 @@ on:
         type: string
       AWS_ACCOUNT:
         required: true
-        type: number
+        type: string
       AWS_APP_RUNNER_COPY_ENVS:
         required: true
         type: string
