@@ -67,6 +67,12 @@ runs:
       shell: bash
       run: npm ci
 
+    - name: Export DB_CONN_STR
+      run: |
+        echo "DB_CONN_STR=postgres://$DB_USER:$DB_PASSWORD@$DB_HOST:5432/$DB_DBNAME" >> $GITHUB_ENV;
+        echo DB_CONN_STR: $DB_CONN_STR;
+      shell: bash
+
     - name: Run unit test cases
       if: ${{ inputs.RUN_UT == 'true' }}
       run: npm run test:ut
