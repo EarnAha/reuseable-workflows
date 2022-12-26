@@ -42,7 +42,7 @@ on:
 
 jobs:
   deploy-to-app-runner:
-    uses: ./.github/workflows/deploy-to-apprunner.yml@main
+    uses: ./.github/workflows/deploy-to-apprunner.yml
     with:
       BRANCH_REF: ${{ inputs.BRANCH_REF }}
       NODE_ENV: ${{ inputs.NODE_ENV }}
