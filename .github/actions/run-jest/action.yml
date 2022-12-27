@@ -43,6 +43,22 @@ inputs:
     description: 'Badge language logo name'
     required: false
     default: javascript
+  DB_USER:
+    description: 'db access user name'
+    default: 'user'
+    required: false
+  DB_PASSWORD:
+    description: 'db access user password'
+    default: 'password'
+    required: false
+  DB_DBNAME:
+    description: 'db name'
+    default: 'database_test'
+    required: false
+  DB_HOST:
+    description: 'db host'
+    default: 'localhost'
+    required: false
 
 runs:
   using: "composite"
@@ -65,7 +81,7 @@ runs:
 
     - name: Export DB_CONN_STR
       run: |
-        echo "DB_CONN_STR=postgres://$DB_USER:$DB_PASSWORD@$DB_HOST:5432/$DB_DBNAME" >> $GITHUB_ENV;
+        echo "DB_CONN_STR=postgres://${{ inputs.$DB_USER }}:${{ inputs.DB_PASSWORD }}@${{ inputs.DB_HOST }}:5432/${{ inputs.DB_DBNAME }}" >> $GITHUB_ENV;
         echo DB_CONN_STR: $DB_CONN_STR;
       shell: bash
 
