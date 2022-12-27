@@ -80,9 +80,9 @@ jobs:
         uses: EarnAha/reuseable-workflows/.github/actions/run-jest@main
         with:
           NODE_VERSION: 16
-          RUN_UT: true
-          RUN_FT: true
-          RUN_IT: false
+          RUN_UT: ${{ inputs.RUN_UT }}
+          RUN_FT: ${{ inputs.JEST_RUN_FT }}
+          RUN_IT: ${{ inputs.RUN_IT }}
           JEST_COVERAGE_MULTIPLE_FILES: |
             Main, ./src/tests/coverage-summary.json
             ${{ github.head_ref }}, ./coverage/coverage-summary.json
