@@ -28,6 +28,6 @@ jobs:
           echo "AWS_ACCOUNT=336932466870" >> $GITHUB_OUTPUT
       - name: Get AWS_ACCOUNT
         id: prod
-        if: inputs.NODE_ENV == 'prod'
+        if: inputs.NODE_ENV == 'prod' || inputs.NODE_ENV == 'production'
         run: |
           echo "AWS_ACCOUNT=944723853722" >> $GITHUB_OUTPUT
