@@ -31,5 +31,10 @@ jobs:
       - name: Get ref/sha
         id: get_ref
         run: |
+          echo "event_name ===> ${{github.event_name}}"
+          echo "workflow_run.head_branch ===> ${{github.workflow_run.head_branch}}"
+          
+          echo "workflow_run ===> ${{github.workflow_run}}"
+          
           echo "HEAD_SHA=`echo ${{inputs._HEAD_SHA}} | cut -c1-7`" >> $GITHUB_OUTPUT
           echo "HEAD_REF=`echo ${{inputs._HEAD_REF}}`" >> $GITHUB_OUTPUT
