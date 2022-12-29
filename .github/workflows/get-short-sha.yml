@@ -35,5 +35,5 @@ jobs:
           echo "workflow_run.head_branch ===> ${{github.event.workflow_run.head_branch}}"
           echo "workflow_run ===> ${{github.event.workflow_run}}"
           
-          echo "HEAD_SHA=`echo ${{inputs._HEAD_SHA}} | cut -c1-7`" >> $GITHUB_OUTPUT
+          echo "HEAD_SHA=`echo ${{inputs._HEAD_SHA}} | cut -c1-8`" >> $GITHUB_OUTPUT
           echo "HEAD_REF=`echo ${{inputs._HEAD_REF}}`" >> $GITHUB_OUTPUT

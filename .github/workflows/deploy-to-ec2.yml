@@ -194,7 +194,7 @@ jobs:
         env:
           HEAD_SHA: ${{ inputs.HEAD_SHA }}
         run: |
-          echo "SHORT_SHA=`echo ${HEAD_SHA} | cut -c1-7`" >> $GITHUB_ENV
+          echo "SHORT_SHA=`echo ${HEAD_SHA} | cut -c1-8`" >> $GITHUB_ENV
 
       - name: Check SHA of latest deployment
         uses: mydea/action-wait-for-api@v1.0.0
