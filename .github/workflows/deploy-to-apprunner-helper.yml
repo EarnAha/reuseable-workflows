@@ -65,7 +65,7 @@ jobs:
       AWS_APP_RUNNER_CPU: ${{ inputs.AWS_APP_RUNNER_CPU }}
       AWS_APP_RUNNER_MEMORY: ${{ inputs.AWS_APP_RUNNER_MEMORY }}
       AWS_APP_RUNNER_WAIT_SECONDS: 600
-      AWS_APP_RUNNER_SHA_CHECK_PATH: /${{ inputs.SERVICE_NAME != 'core' && '/') || '' }}info
+      AWS_APP_RUNNER_SHA_CHECK_PATH: /${{ (inputs.SERVICE_NAME != 'core' && '/') || '' }}info
       AWS_APP_RUNNER_ASSUME_ROLE_ARN: 'arn:aws:iam::${{ inputs.AWS_ACCOUNT }}:role/service-role/AppRunnerECRAccessRole'
       AWS_APP_RUNNER_COPY_ENVS: ${{ inputs.AWS_APP_RUNNER_COPY_ENVS }}
     secrets: inherit
