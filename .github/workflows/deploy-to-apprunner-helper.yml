@@ -46,12 +46,11 @@ on:
       SENTRY_AUTH_TOKEN:
         required: true
 
-env:
-  DEFAULT_CHECK_PATH: /${{ inputs.SERVICE_NAME }}/info
-
 jobs:
   deploy-to-app-runner:
     uses: ./.github/workflows/deploy-to-apprunner.yml
+    env:
+      DEFAULT_CHECK_PATH: /${{ inputs.SERVICE_NAME }}/info
     with:
       BRANCH_REF: ${{ inputs.BRANCH_REF }}
       NODE_ENV: ${{ inputs.NODE_ENV }}
