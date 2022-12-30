@@ -46,10 +46,17 @@ on:
       SENTRY_AUTH_TOKEN:
         required: true
 
-env:
-  DEFAULT_CHECK_PATH: ${{ inputs.SERVICE_NAME }}/
+#env:
+#  DEFAULT_CHECK_PATH: ${{ inputs.SERVICE_NAME }}/
 
 jobs:
+  set-env:
+    runs-on: self-hosted
+    steps:
+      - name: Set DEFAULT_CHECK_PATH
+        run: |
+          echo "DEFAULT_CHECK_PATH=${{ inputs.SERVICE_NAME }}/" >> $GITHUB_CONTENT
+
   deploy-to-app-runner:
     uses: ./.github/workflows/deploy-to-apprunner.yml
     with:
