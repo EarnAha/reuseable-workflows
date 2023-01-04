@@ -1,0 +1,32 @@
+name: Verify on Jenkins
+
+on:
+  workflow_call:
+    inputs:
+      NODE_ENV:
+        required: true
+        type: string
+
+jobs:
+  release-please:
+    runs-on: self-hosted
+    steps:
+      - id: string
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ inputs.NODE_ENV }}
+
+      - name: Test latest deploy app
+        id: testing
+        uses: tadeubraga/trigger-jenkins-job@v2
+        env:
+          JENKINS_JOB_NAME: ${{ secrets[format('JENKINS_JOB_{0}', steps.string.outputs.uppercase)] }}
+        if: ${{ env.JENKINS_JOB_NAME }}
+        with:
+          jenkins-server: ${{ env.JENKINS_URL }}
+          jenkins-pat: ${{ secrets.JENKINS_TOKEN }}
+          jenkins-username: ${{ secrets.JENKINS_USER }}
+          jenkins-job: ${{ env.JENKINS_JOB_NAME }}
+          poll-time: 10
+          timeout-value: 600
+          verbose: true
