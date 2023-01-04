@@ -28,18 +28,24 @@ on:
         type: string
         default: '16'
       JEST_RUN_UT:
-        required: true
+        required: false
         type: boolean
         default: true
       JEST_RUN_FT:
-        required: true
+        required: false
         type: boolean
-        default: false
+        default: true
       JEST_RUN_IT:
-        required: true
+        required: false
         type: boolean
-        default: false
+        default: true
     secrets:
+      JEST_RUN_FT:
+        required: false
+      JEST_RUN_IT:
+        required: false
+      JEST_RUN_UT:
+        required: false
       JEST_BADGE_LOGO_NAME:
         required: true
       JEST_BADGE_UPDATE_GIST_FILE_NAME:
@@ -80,9 +86,9 @@ jobs:
         uses: EarnAha/reuseable-workflows/.github/actions/run-jest@main
         with:
           NODE_VERSION: 16
-          RUN_UT: ${{ inputs.RUN_UT }}
-          RUN_FT: ${{ inputs.JEST_RUN_FT }}
-          RUN_IT: ${{ inputs.RUN_IT }}
+          RUN_UT: ${{ secrets.JEST_RUN_UT == 'true' || inputs.RUN_UT }}
+          RUN_FT: ${{ secrets.JEST_RUN_FT == 'true' || inputs.JEST_RUN_FT }}
+          RUN_IT: ${{ secrets.JEST_RUN_IT == 'true' || inputs.RUN_IT }}
           JEST_COVERAGE_MULTIPLE_FILES: |
             Main, ./src/tests/coverage-summary.json
             ${{ github.head_ref }}, ./coverage/coverage-summary.json
