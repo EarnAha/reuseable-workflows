@@ -74,7 +74,7 @@ jobs:
         repository: ${{ github.repository }}
         ref: ${{ inputs.HEAD_REF }}
         environment: ${{ inputs.NODE_ENV }}
-        auto_merge: false
+        auto_merge: ${{ inputs.HEAD_REF == 'main' }}
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
