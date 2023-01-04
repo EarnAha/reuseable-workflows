@@ -108,7 +108,7 @@ jobs:
         repository: ${{ github.repository }}
         ref: ${{ github.head_ref || github.ref }}
         environment: ${{ env.NODE_ENV }}
-        auto_merge: false
+        auto_merge: ${{ inputs.HEAD_REF == 'main' }}
         production_environment: ${{ startsWith(env.NODE_ENV, 'prod') }}
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

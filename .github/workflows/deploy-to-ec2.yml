@@ -75,6 +75,7 @@ jobs:
         ref: ${{ inputs.HEAD_REF }}
         environment: ${{ inputs.NODE_ENV }}
         auto_merge: ${{ inputs.HEAD_REF == 'main' }}
+        production_environment: ${{ startsWith(env.NODE_ENV, 'prod') }}
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
