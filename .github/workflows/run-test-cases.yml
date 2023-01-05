@@ -34,11 +34,11 @@ on:
       JEST_RUN_FT:
         required: false
         type: boolean
-        default: true
+        default: false
       JEST_RUN_IT:
         required: false
         type: boolean
-        default: true
+        default: false
     secrets:
       JEST_RUN_FT:
         required: false
@@ -84,11 +84,15 @@ jobs:
           secrets: ${{ toJSON(secrets) }}
       - name: Running test cases
         uses: EarnAha/reuseable-workflows/.github/actions/run-jest@main
+        env:
+          JEST_RUN_UT: ${{ secrets.JEST_RUN_UT != '' || inputs.RUN_UT }}
+          JEST_RUN_FT: ${{ secrets.JEST_RUN_FT != '' || inputs.JEST_RUN_FT }}
+          JEST_RUN_IT: ${{ secrets.JEST_RUN_IT != '' || inputs.JEST_RUN_IT }}
         with:
           NODE_VERSION: 16
-          RUN_UT: ${{ secrets.JEST_RUN_UT == 'true' || inputs.RUN_UT }}
-          RUN_FT: ${{ secrets.JEST_RUN_FT == 'true' || inputs.JEST_RUN_FT }}
-          RUN_IT: ${{ secrets.JEST_RUN_IT == 'true' || inputs.RUN_IT }}
+          RUN_UT: ${{ env.JEST_RUN_UT }}
+          RUN_FT: ${{ env.JEST_RUN_FT }}
+          RUN_IT: ${{ env.JEST_RUN_IT }}
           JEST_COVERAGE_MULTIPLE_FILES: |
             Main, ./src/tests/coverage-summary.json
             ${{ github.head_ref }}, ./coverage/coverage-summary.json
