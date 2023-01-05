@@ -3,7 +3,7 @@ name: Deploy to App Runner
 on:
   workflow_call:
     inputs:
-      BRANCH_REF:
+      HEAD_REF:
         required: false
         type: string
         default: main
@@ -106,7 +106,7 @@ jobs:
       with:
         route: POST /repos/:repository/deployments
         repository: ${{ github.repository }}
-        ref: ${{ github.head_ref || github.ref }}
+        ref: ${{ inputs.HEAD_REF || github.head_ref || github.ref }}
         environment: ${{ env.NODE_ENV }}
         auto_merge: ${{ inputs.HEAD_REF == 'main' }}
         production_environment: ${{ startsWith(env.NODE_ENV, 'prod') }}
