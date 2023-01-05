@@ -225,6 +225,7 @@ jobs:
           sourcemaps: ${{ secrets.SENTRY_SOURCEMAP_PATH }}
           environment: ${{ inputs.NODE_ENV }}
           ignore_empty: true
+          ignore_missing: true
 
 
       # =========================================================
