@@ -87,27 +87,23 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: npm ci
+      run: |
+        export NODE_OPTIONS=--max_old_space_size=8192
+        npm ci
 
     - name: Run unit test cases
       if: ${{ inputs.RUN_UT == 'true' }}
-      run:  |
-        set NODE_OPTIONS="--max_old_space_size=4096"
-        npm run test:ut
+      run: npm run test:ut
       shell: bash
 
     - name: Run functional test cases
       if: ${{ inputs.RUN_FT == 'true' }}
-      run:  |
-        set NODE_OPTIONS="--max_old_space_size=4096"
-        npm run test:ft
+      run: npm run test:ft
       shell: bash
 
     - name: Run integration test cases
       if: ${{ inputs.RUN_IT == 'true' }}
-      run: |
-        set NODE_OPTIONS="--max_old_space_size=4096"
-        npm run test:it
+      run: npm run test:it
       shell: bash
 
     - name: Generate Jest Coverage Comment
