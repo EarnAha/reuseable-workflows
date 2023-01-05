@@ -87,9 +87,7 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: |
-        export NODE_OPTIONS=--max_old_space_size=8192
-        npm ci
+      run: npm ci
 
     - name: Run unit test cases
       if: ${{ inputs.RUN_UT == 'true' }}
