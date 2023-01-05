@@ -96,12 +96,16 @@ runs:
 
     - name: Run functional test cases
       if: ${{ inputs.RUN_FT == 'true' }}
-      run: npm run test:ft
+      run:  |
+        export NODE_OPTIONS="--max_old_space_size=3072"
+        npm run test:ft
       shell: bash
 
     - name: Run integration test cases
       if: ${{ inputs.RUN_IT == 'true' }}
-      run: npm run test:it
+      run: |
+        export NODE_OPTIONS="--max_old_space_size=3072"
+        npm run test:it
       shell: bash
 
     - name: Generate Jest Coverage Comment
