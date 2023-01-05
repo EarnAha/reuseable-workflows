@@ -91,7 +91,9 @@ runs:
 
     - name: Run unit test cases
       if: ${{ inputs.RUN_UT == 'true' }}
-      run: npm run test:ut
+      run:  |
+        export NODE_OPTIONS="--max_old_space_size=3072"
+        npm run test:ut
       shell: bash
 
     - name: Run functional test cases
