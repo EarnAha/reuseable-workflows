@@ -92,21 +92,21 @@ runs:
     - name: Run unit test cases
       if: ${{ inputs.RUN_UT == 'true' }}
       run:  |
-        export NODE_OPTIONS="--max_old_space_size=4096"
+        set NODE_OPTIONS="--max_old_space_size=4096"
         npm run test:ut
       shell: bash
 
     - name: Run functional test cases
       if: ${{ inputs.RUN_FT == 'true' }}
       run:  |
-        export NODE_OPTIONS="--max_old_space_size=4096"
+        set NODE_OPTIONS="--max_old_space_size=4096"
         npm run test:ft
       shell: bash
 
     - name: Run integration test cases
       if: ${{ inputs.RUN_IT == 'true' }}
       run: |
-        export NODE_OPTIONS="--max_old_space_size=4096"
+        set NODE_OPTIONS="--max_old_space_size=4096"
         npm run test:it
       shell: bash
 
