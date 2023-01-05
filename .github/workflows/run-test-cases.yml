@@ -62,6 +62,7 @@ env:
   DB_DBNAME: database_test
   DB_USER: user
   DB_PASSWORD: password
+  NODE_OPTIONS: "--max_old_space_size=4096"
 
 jobs:
   do:
@@ -85,7 +86,6 @@ jobs:
       - name: Running test cases
         uses: EarnAha/reuseable-workflows/.github/actions/run-jest@main
         env:
-          NODE_OPTIONS: "--max_old_space_size=4096"
           JEST_RUN_UT: ${{ secrets.JEST_RUN_UT != '' || inputs.RUN_UT }}
           JEST_RUN_FT: ${{ secrets.JEST_RUN_FT != '' || inputs.JEST_RUN_FT }}
           JEST_RUN_IT: ${{ secrets.JEST_RUN_IT != '' || inputs.JEST_RUN_IT }}
