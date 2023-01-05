@@ -3,7 +3,7 @@ name: Deploy to apprunner
 on:
   workflow_call:
     inputs:
-      BRANCH_REF:
+      HEAD_REF:
         required: true
         type: string
       NODE_ENV:
@@ -53,7 +53,7 @@ jobs:
   deploy-to-app-runner:
     uses: ./.github/workflows/deploy-to-apprunner.yml
     with:
-      BRANCH_REF: ${{ inputs.BRANCH_REF }}
+      HEAD_REF: ${{ inputs.HEAD_REF }}
       NODE_ENV: ${{ inputs.NODE_ENV }}
       APP_PORT: ${{ inputs.APP_PORT }}
       AWS_REGION: 'ap-northeast-1'
