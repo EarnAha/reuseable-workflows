@@ -8,7 +8,7 @@ on:
         type: string
 
 jobs:
-  release-please:
+  verify-on-jenkins:
     runs-on: self-hosted
     steps:
       - id: string
@@ -23,7 +23,7 @@ jobs:
           JENKINS_JOB_NAME: ${{ secrets[format('JENKINS_JOB_{0}', steps.string.outputs.uppercase)] }}
         if: ${{ env.JENKINS_JOB_NAME }}
         with:
-          jenkins-server: ${{ env.JENKINS_URL }}/${{ env.JENKINS_JOB_NAME }}
+          jenkins-server: ${{ secrets.JENKINS_URL }}/${{ env.JENKINS_JOB_NAME }}
           jenkins-pat: ${{ secrets.JENKINS_TOKEN }}
           jenkins-username: ${{ secrets.JENKINS_USER }}
           jenkins-job: ${{ env.JENKINS_JOB_NAME }}
