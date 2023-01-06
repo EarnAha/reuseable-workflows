@@ -62,7 +62,7 @@ env:
   DB_DBNAME: database_test
   DB_USER: user
   DB_PASSWORD: password
-  NODE_OPTIONS: "--max_old_space_size=3072"
+  NODE_OPTIONS: "--max_old_space_size=3584"
 
 jobs:
   do:
