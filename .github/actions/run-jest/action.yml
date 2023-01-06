@@ -5,7 +5,7 @@ description: "Run all necessary test cases."
 inputs:
   NODE_VERSION:
     description: 'Target node version'
-    default: '16'
+    default: '18'
     required: false
   RUN_UT:
     description: 'Should the test runs ut'
