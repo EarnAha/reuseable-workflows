@@ -90,7 +90,7 @@ jobs:
           JEST_RUN_FT: ${{ secrets.JEST_RUN_FT != '' || inputs.JEST_RUN_FT }}
           JEST_RUN_IT: ${{ secrets.JEST_RUN_IT != '' || inputs.JEST_RUN_IT }}
         with:
-          NODE_VERSION: 16.10
+          NODE_VERSION: 16.10.0
           RUN_UT: ${{ env.JEST_RUN_UT }}
           RUN_FT: ${{ env.JEST_RUN_FT }}
           RUN_IT: ${{ env.JEST_RUN_IT }}
