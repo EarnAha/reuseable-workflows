@@ -177,6 +177,7 @@ jobs:
             git reset --hard
             git checkout origin/${{ inputs.HEAD_REF }}
             npm ci
+            npm run db:migrate dev
             ${{ inputs.AWS_EC2_APP_RESTART_COMMAND }}
             sleep 10
             pm2 logs ${{ inputs.AWS_EC2_APP_FOLDER_NAME }} --nostream --lines 100
